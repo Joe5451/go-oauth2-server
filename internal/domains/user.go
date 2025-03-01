@@ -41,8 +41,9 @@ type UserUsecase interface {
 type UserRepository interface {
 	Create(user User) (User, error)
 	GetUserByEmail(email string) (User, error)
-	GetSocialAccountByProviderUserID(provider, providerUserID string) *SocialAccount
+	FirstOrCreateSocialAccount(provider, providerUserID string) (SocialAccount, error)
 	CreateSocialAccount(account SocialAccount) SocialAccount
+	UpdateSocialAccount(account SocialAccount) error
 	GetUserByID(id int64) (User, error)
-	UpdateUserByID(id int64, user User)
+	UpdateUserByID(id int64, user User) error
 }
