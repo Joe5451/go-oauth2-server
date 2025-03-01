@@ -29,6 +29,10 @@ func NewGoogleProvider() *GoogleProvider {
 	return &GoogleProvider{}
 }
 
+func (p *GoogleProvider) ProviderName() string {
+	return "google"
+}
+
 func (p *GoogleProvider) NewOauth2Config(redirectUri string) *oauth2.Config {
 	conf := &oauth2.Config{
 		ClientID:     config.AppConfig.GoogleOauth2ClientID,

@@ -5,6 +5,7 @@ import (
 )
 
 type SocialProvider interface {
+	ProviderName() string
 	NewOauth2Config(redirectUri string) *oauth2.Config
 	GetUserInformationByAuthorizationCode(code, redirectUri string) (SocialProviderUser, error)
 }

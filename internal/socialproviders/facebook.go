@@ -37,6 +37,10 @@ func NewFacebookProvider() *FacebookProvider {
 	return &FacebookProvider{}
 }
 
+func (p *FacebookProvider) ProviderName() string {
+	return "facebook"
+}
+
 func (p *FacebookProvider) NewOauth2Config(redirectUri string) *oauth2.Config {
 	conf := &oauth2.Config{
 		ClientID:     config.AppConfig.FacebookOauth2ClientID,
