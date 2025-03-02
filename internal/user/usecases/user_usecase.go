@@ -14,6 +14,12 @@ type UserUsecase struct {
 	userRepo domains.UserRepository
 }
 
+func NewUserUsecase(userRepo domains.UserRepository) domains.UserUsecase {
+	return &UserUsecase{
+		userRepo: userRepo,
+	}
+}
+
 func (u *UserUsecase) Register(user domains.User) error {
 	user, err := u.userRepo.Create(user)
 	if err != nil {
@@ -112,4 +118,9 @@ func (u *UserUsecase) GetUser(userID int64) (domains.User, error) {
 		return domains.User{}, ErrUserNotFound
 	}
 	return user, nil
+}
+
+func (u *UserUsecase) UpdateUser(userID int64, user domains.User) error {
+	err := u.userRepo.UpdateUser(userID, user)
+	return err
 }
