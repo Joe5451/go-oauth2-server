@@ -73,7 +73,7 @@ func (u *UserUsecase) LoginWithSocialAccount(
 	}
 
 	if socialAccount.UserID.Valid {
-		user, err := u.userRepo.GetUserByID(socialAccount.UserID.Int64)
+		user, err := u.userRepo.GetUser(socialAccount.UserID.Int64)
 		if err != nil {
 			return domains.User{}, ErrUserNotFound
 		}
@@ -106,11 +106,10 @@ func (u *UserUsecase) LoginWithSocialAccount(
 	return user, nil
 }
 
-func (u *UserUsecase) GetUserByID(userID int64) (domains.User, error) {
-	user, err := u.userRepo.GetUserByID(userID)
+func (u *UserUsecase) GetUser(userID int64) (domains.User, error) {
+	user, err := u.userRepo.GetUser(userID)
 	if err != nil {
 		return domains.User{}, ErrUserNotFound
 	}
-
 	return user, nil
 }

@@ -35,16 +35,16 @@ type UserUsecase interface {
 	LoginWithEmail(email, password string) (User, error)
 	GenerateSocialProviderAuthUrl(provider socialproviders.SocialProvider, state, redirectUri string) (string, error)
 	LoginWithSocialAccount(provider socialproviders.SocialProvider, authorizationCode, redirectUri string) (User, error)
-	GetUserByID(userID int64) User
-	UpdateUserByID(userID int64, user User)
+	GetUser(userID int64) (User, error)
+	UpdateUser(userID int64, user User) error
 }
 
 type UserRepository interface {
 	Create(user User) (User, error)
+	GetUser(userID int64) (User, error)
 	GetUserByEmail(email string) (User, error)
 	FirstOrCreateSocialAccount(provider, providerUserID string) (SocialAccount, error)
 	CreateSocialAccount(account SocialAccount) SocialAccount
 	UpdateSocialAccount(account SocialAccount) error
-	GetUserByID(id int64) (User, error)
-	UpdateUserByID(id int64, user User) error
+	UpdateUser(usreID int64, user User) error
 }
