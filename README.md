@@ -10,21 +10,30 @@
 ├── build
 ├── cmd
 ├── deployments
-├── internal
-│   ├── app
-│   │   ├── repositories
-│   │   └── usecases
+├── internal/
+│   ├── adapter/
+│   │   ├── handlers/
+│   │   │   └── user_handler.go
+│   │   └── repositories/
+│   │       └── postgres_user_repository.go
+│   ├── application/
+│   │   ├── user_service.go
+│   │   └── ports/
+│   │       ├── in/
+│   │       │   └── user_usecase.go
+│   │       └── out/
+│   │           └── user_repository.go
 │   ├── config
 │   ├── constants
-│   ├── domains
-│   └── http
-│       ├── handlers
-│       ├── middlewares
-│       └── routes
+│   ├── domain/
+│   │   ├── user.go
+│   │   └── social_account.go
+│   ├── http/
+│   │   ├── middlewares
+│   │   └── router.go
+│   ├── wire_gen.go
+│   └── wire.go
 ├── test
-├── air.toml
-├── .env.example
-├── .gitignore
 ├── go.mod
 ├── go.sum
 └── README.md
