@@ -13,7 +13,7 @@ type RegisterUserRequest struct {
 
 type UserUsecase interface {
 	Register(req RegisterUserRequest) error
-	LoginWithEmail(email, password string) (domain.User, error)
+	AuthenticateUser(email, password string) (domain.User, error)
 	GenerateSocialProviderAuthUrl(provider socialproviders.SocialProvider, state, redirectUri string) (string, error)
 	LoginWithSocialAccount(provider socialproviders.SocialProvider, authorizationCode, redirectUri string) (domain.User, error)
 	GetUser(userID int64) (domain.User, error)
