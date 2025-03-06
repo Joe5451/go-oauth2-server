@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/Joe5451/go-oauth2-server/internal/application/ports/in"
 	"github.com/Joe5451/go-oauth2-server/internal/application/ports/out"
 	"github.com/Joe5451/go-oauth2-server/internal/constants"
 	"github.com/Joe5451/go-oauth2-server/internal/domain"
@@ -22,15 +23,31 @@ func NewUserService(userRepo out.UserRepository) *UserService {
 	}
 }
 
-func (u *UserService) Register(user domain.User) error {
-	user, err := u.userRepo.Create(user)
+func (u *UserService) Register(req in.RegisterUserRequest) error {
+	password, err := hashPassword(req.Password)
 	if err != nil {
 		return err
 	}
+
+	user := domain.User{
+		Email:    req.Email,
+		Password: password,
+		Username: req.Username,
+	}
+
+	user, err = u.userRepo.Create(user)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
-func (u *UserService) LoginWithEmail(email, password string) (domain.User, error) {
+func hashPassword(password string) (string, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+	return string(bytes), err
+}
+
 	user, err := u.userRepo.GetUserByEmail(email)
 	if err != nil {
 		return domain.User{}, constants.ErrUserNotFound
