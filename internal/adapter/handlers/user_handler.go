@@ -17,6 +17,10 @@ func NewUserHandler(usecase in.UserUsecase) *UserHandler {
 	}
 }
 
+func (h *UserHandler) CSRFToken(c *gin.Context) {
+	c.Status(http.StatusNoContent)
+}
+
 func (h *UserHandler) Register(c *gin.Context) {
 	json := struct {
 		Email    string `json:"email" binding:"required"`
