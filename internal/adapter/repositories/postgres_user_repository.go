@@ -143,6 +143,25 @@ func (r *PostgresUserRepository) CreateSocialAccount(account domain.SocialAccoun
 }
 
 func (r *PostgresUserRepository) UpdateSocialAccount(account domain.SocialAccount) error {
+	query := `
+        UPDATE social_accounts SET user_id = @user_id, updated_at = CURRENT_TIMESTAMP WHERE id = @social_account_id
+    `
+
+	args := pgx.NamedArgs{
+		"user_id":           account.UserID,
+		"social_account_id": account.ID,
+	}
+
+	cmdTag, err := r.conn.Exec(context.Background(), query, args)
+	if err != nil {
+		log.Printf("Error updating social account: %v\n", err)
+		return err
+	}
+
+	if cmdTag.RowsAffected() == 0 {
+		return fmt.Errorf("no social account updated (account: %v)", account)
+	}
+
 	return nil
 }
 
