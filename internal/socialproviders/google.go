@@ -69,7 +69,7 @@ func (p *GoogleProvider) GetUserInformationByAuthorizationCode(code, redirectUri
 	return SocialProviderUser{
 		ProviderUserID: claims.Sub,
 		Email:          claims.Email,
-		Username:       claims.Name,
+		Name:           claims.Name,
 		Avatar:         claims.Picture,
 	}, nil
 }

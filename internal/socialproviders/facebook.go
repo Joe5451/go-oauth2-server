@@ -81,7 +81,7 @@ func (p *FacebookProvider) GetUserInformationByAuthorizationCode(code, redirectU
 	return SocialProviderUser{
 		ProviderUserID: user.ID,
 		Email:          user.Email,
-		Username:       user.Name,
+		Name:           user.Name,
 		Avatar:         user.Picture.Data.URL,
 	}, nil
 }

@@ -1,6 +1,8 @@
 package socialproviders
 
 import (
+	"fmt"
+
 	"golang.org/x/oauth2"
 )
 
@@ -13,7 +15,7 @@ type SocialProvider interface {
 type SocialProviderUser struct {
 	ProviderUserID string
 	Email          string
-	Username       string
+	Name           string
 	Avatar         string
 }
 
