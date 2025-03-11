@@ -24,7 +24,7 @@ func NewUserService(userRepo out.UserRepository) *UserService {
 }
 
 func (u *UserService) Register(req in.RegisterUserRequest) error {
-	password, err := hashPassword(req.Password)
+	password, err := u.hashPassword(req.Password)
 	if err != nil {
 		return err
 	}
@@ -41,7 +41,7 @@ func (u *UserService) Register(req in.RegisterUserRequest) error {
 	return nil
 }
 
-func hashPassword(password string) (string, error) {
+func (u *UserService) hashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
 	return string(bytes), err
 }
