@@ -29,13 +29,11 @@ func (u *UserService) Register(req in.RegisterUserRequest) error {
 		return err
 	}
 
-	user := domain.User{
+	_, err = u.userRepo.CreateUser(domain.User{
 		Email:    req.Email,
 		Password: password,
 		Username: req.Username,
-	}
-
-	user, err = u.userRepo.Create(user)
+	})
 	if err != nil {
 		return err
 	}

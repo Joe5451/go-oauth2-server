@@ -18,7 +18,7 @@ func NewPostgresUserRepository(conn *pgx.Conn) *PostgresUserRepository {
 	}
 }
 
-func (r *PostgresUserRepository) Create(user domain.User) (domain.User, error) {
+func (r *PostgresUserRepository) CreateUser(user domain.User) (domain.User, error) {
 	query := `
         INSERT INTO users (
 			email,

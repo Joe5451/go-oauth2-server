@@ -5,7 +5,7 @@ import (
 )
 
 type UserRepository interface {
-	Create(user domain.User) (domain.User, error)
+	CreateUser(user domain.User) (domain.User, error)
 	GetUser(userID int64) (domain.User, error)
 	GetUserByEmail(email string) (domain.User, error)
 	FirstOrCreateSocialAccount(provider, providerUserID string) (domain.SocialAccount, error)
