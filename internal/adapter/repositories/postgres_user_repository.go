@@ -2,10 +2,13 @@ package repositories
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"log"
 
 	"github.com/Joe5451/go-oauth2-server/internal/domain"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 type PostgresUserRepository struct {
@@ -20,40 +23,26 @@ func NewPostgresUserRepository(conn *pgx.Conn) *PostgresUserRepository {
 
 func (r *PostgresUserRepository) CreateUser(user domain.User) (domain.User, error) {
 	query := `
-        INSERT INTO users (
-			email,
-			password,
-			phone_number,
-			username,
-			gender,
-			avatar,
-		) VALUES (
-			@email,
-			@password,
-			@phone_number,
-			@username,
-			@gender,
-			@avatar,
-		)
+        INSERT INTO users (email, password, name, avatar) VALUES (@email, @password, @name, @avatar) RETURNING id, email, name, avatar
 	`
 
 	args := pgx.NamedArgs{
-		"email":        user.Email,
-		"password":     user.Password,
-		"phone_number": user.PhoneNumber,
-		"username":     user.Username,
-		"gender":       user.Gender,
-		"avatar":       user.Avatar,
+		"email":    user.Email,
+		"password": user.Password,
+		"name":     user.Name,
+		"avatar":   user.Avatar,
 	}
 
-	_, err := r.conn.Exec(context.Background(), query, args)
+	err := r.conn.QueryRow(context.Background(), query, args).Scan(&user.ID, &user.Email, &user.Name, &user.Avatar)
 	if err != nil {
-		log.Println("Error Inserting User")
-		return domain.User{}, err
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			return domain.User{}, domain.ErrDuplicateEmail
+		}
+		return domain.User{}, fmt.Errorf("database error: %w", err)
 	}
 
-	// WIP: Will return populated user data after implementation
-	return domain.User{}, nil
+	return user, nil
 }
 
 func (r *PostgresUserRepository) GetUser(userID int64) (domain.User, error) {
