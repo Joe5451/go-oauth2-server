@@ -130,7 +130,7 @@ func (u *UserService) LoginWithSocialAccount(
 func (u *UserService) GetUser(userID int64) (domain.User, error) {
 	user, err := u.userRepo.GetUser(userID)
 	if err != nil {
-		return domain.User{}, constants.ErrUserNotFound
+		return domain.User{}, domain.ErrUserNotFound
 	}
 	return user, nil
 }
