@@ -5,13 +5,13 @@ import (
 )
 
 type SocialAccount struct {
-	ID             int64     `json:"id"`
-	UserID         *int64    `json:"user_id"`
+	ID             int64     `json:"-"`
+	UserID         *int64    `json:"-"`
 	Provider       string    `json:"provider"`
-	ProviderUserID string    `json:"provider_user_id"`
+	ProviderUserID string    `json:"-"`
 	Email          *string   `json:"email"`
 	Name           *string   `json:"name"`
 	Avatar         *string   `json:"avatar"`
-	CreatedAt      time.Time `json:"created_at"`
-	UpdatedAt      time.Time `json:"updated_at"`
+	CreatedAt      time.Time `json:"-"`
+	UpdatedAt      time.Time `json:"-"`
 }
