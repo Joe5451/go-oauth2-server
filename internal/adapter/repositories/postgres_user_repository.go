@@ -76,39 +76,44 @@ func (r *PostgresUserRepository) GetUser(userID int64) (domain.User, error) {
 }
 
 func (r *PostgresUserRepository) GetUserByEmail(email string) (domain.User, error) {
+	// SQL query with left join to fetch user and associated social accounts
 	query := `
-		SELECT
-			id,
-			email,
-			phone_number,
-			username,
-			gender,
-			avatar,
-			created_at,
-			updated_at,
-		FROM users WHERE email = @email
+        SELECT u.id, u.email, u.name, u.avatar, s.id AS social_account_id, s.provider, s.provider_user_id, s.email, s.name, s.avatar FROM users u
+        LEFT JOIN social_accounts s ON u.id = s.user_id
+        WHERE u.email = @email
 	`
 
 	args := pgx.NamedArgs{
 		"email": email,
 	}
 
-	var user domain.User
-	err := r.conn.QueryRow(context.Background(), query, args).Scan(
-		&user.ID,
-		&user.Email,
-		&user.PhoneNumber,
-		&user.Username,
-		&user.Gender,
-		&user.Avatar,
-		&user.CreatedAt,
-		&user.UpdatedAt,
-	)
-
+	rows, err := r.conn.Query(context.Background(), query, args)
 	if err != nil {
 		return domain.User{}, err
 	}
+	defer rows.Close()
 
+	var user domain.User
+	var socialAccounts []domain.SocialAccount
+
+	for rows.Next() {
+		var account domain.SocialAccount
+
+		err := rows.Scan(
+			&user.ID, &user.Email, &user.Name, &user.Avatar,
+			&account.ID, &account.Provider, &account.ProviderUserID, &account.Email, &account.Name, &account.Avatar,
+		)
+		if err != nil {
+			return domain.User{}, fmt.Errorf("Error Fetching user and social account: %w", err)
+		}
+		socialAccounts = append(socialAccounts, account)
+	}
+
+	if user.ID == 0 {
+		return domain.User{}, domain.ErrUserNotFound
+	}
+
+	user.SocialAccounts = socialAccounts
 	return user, nil
 }
 
