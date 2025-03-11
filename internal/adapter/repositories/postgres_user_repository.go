@@ -158,6 +158,32 @@ func (r *PostgresUserRepository) UpdateOrCreateSocialAccount(socialAccount domai
 	return socialAccount, nil
 }
 
+func (r *PostgresUserRepository) GetSocialAccountByProviderUserID(providerUserID string) (domain.SocialAccount, error) {
+	query := `
+		SELECT id, provider, provider_user_id, user_id, created_at, updated_at FROM social_accounts WHERE provider_user_id = @provider_user_id
+	`
+
+	args := pgx.NamedArgs{
+		"provider_user_id": providerUserID,
+	}
+
+	var socialAccount domain.SocialAccount
+
+	err := r.conn.QueryRow(context.Background(), query, args).Scan(
+		&socialAccount.ID,
+		&socialAccount.Provider,
+		&socialAccount.ProviderUserID,
+		&socialAccount.UserID,
+		&socialAccount.CreatedAt,
+		&socialAccount.UpdatedAt,
+	)
+	if err != nil {
+		return domain.SocialAccount{}, fmt.Errorf("Error fetching social account: %w", err)
+	}
+
+	return socialAccount, nil
+}
+
 func (r *PostgresUserRepository) UpdateSocialAccount(account domain.SocialAccount) error {
 	query := `
         UPDATE social_accounts SET user_id = @user_id, updated_at = CURRENT_TIMESTAMP WHERE id = @social_account_id
