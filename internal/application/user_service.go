@@ -49,11 +49,11 @@ func (u *UserService) hashPassword(password string) (string, error) {
 func (u *UserService) AuthenticateUser(email, password string) (domain.User, error) {
 	user, err := u.userRepo.GetUserByEmail(email)
 	if err != nil {
-		return domain.User{}, constants.ErrUserNotFound
+		return domain.User{}, err
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
-		return domain.User{}, constants.ErrInvalidCredentials
+		return domain.User{}, domain.ErrInvalidCredentials
 	}
 
 	return user, nil
