@@ -21,6 +21,8 @@ func NewRouter(userHandler *handlers.UserHandler) *gin.Engine {
 	router.Use(middlewares.CSRFToken())
 
 	router.GET("/csrf-token", userHandler.CSRFToken)
+	router.POST("/register", userHandler.Register)
+	router.POST("/login", userHandler.LoginWithEmail)
 
 	return router
 }
