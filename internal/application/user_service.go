@@ -59,12 +59,9 @@ func (u *UserService) AuthenticateUser(email, password string) (domain.User, err
 	return user, nil
 }
 
-func (u *UserService) GenerateSocialProviderAuthUrl(
-	provider socialproviders.SocialProvider,
-	state, redirectUri string,
-) (string, error) {
+func (u *UserService) SocialAuthUrl(provider socialproviders.SocialProvider, state, redirectUri string) (string, error) {
 	if provider == nil {
-		return "", constants.ErrInvalidProvider
+		return "", domain.ErrInvalidProvider
 	}
 
 	config := provider.NewOauth2Config(redirectUri)

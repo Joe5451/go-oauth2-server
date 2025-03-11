@@ -14,7 +14,7 @@ type RegisterUserRequest struct {
 type UserUsecase interface {
 	Register(req RegisterUserRequest) error
 	AuthenticateUser(email, password string) (domain.User, error)
-	GenerateSocialProviderAuthUrl(provider socialproviders.SocialProvider, state, redirectUri string) (string, error)
+	SocialAuthUrl(provider socialproviders.SocialProvider, state, redirectUri string) (string, error)
 	LoginWithSocialAccount(provider socialproviders.SocialProvider, authorizationCode, redirectUri string) (domain.User, error)
 	GetUser(userID int64) (domain.User, error)
 	UpdateUser(userID int64, user domain.User) error
