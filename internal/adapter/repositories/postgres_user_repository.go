@@ -47,35 +47,28 @@ func (r *PostgresUserRepository) CreateUser(user domain.User) (domain.User, erro
 
 func (r *PostgresUserRepository) GetUser(userID int64) (domain.User, error) {
 	query := `
-		SELECT
-			id,
-			email,
-			phone_number,
-			username,
-			gender,
-			avatar,
-			created_at,
-			updated_at,
-		FROM users WHERE id = @userID
+		SELECT id, email, password, name, avatar, created_at, updated_at FROM users WHERE id = @id
 	`
 
 	args := pgx.NamedArgs{
-		"userID": userID,
+		"id": userID,
 	}
 
 	var user domain.User
 	err := r.conn.QueryRow(context.Background(), query, args).Scan(
 		&user.ID,
 		&user.Email,
-		&user.PhoneNumber,
-		&user.Username,
-		&user.Gender,
+		&user.Password,
+		&user.Name,
 		&user.Avatar,
 		&user.CreatedAt,
 		&user.UpdatedAt,
 	)
 
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return domain.User{}, domain.ErrUserNotFound
+		}
 		return domain.User{}, err
 	}
 
