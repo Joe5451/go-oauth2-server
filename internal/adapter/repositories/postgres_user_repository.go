@@ -112,11 +112,45 @@ func (r *PostgresUserRepository) GetUserByEmail(email string) (domain.User, erro
 	return user, nil
 }
 
-func (r *PostgresUserRepository) FirstOrCreateSocialAccount(
-	provider, providerUserID string,
-) (domain.SocialAccount, error) {
-	// pending implementation
-	return domain.SocialAccount{}, nil
+func (r *PostgresUserRepository) UpdateOrCreateSocialAccount(socialAccount domain.SocialAccount) (domain.SocialAccount, error) {
+	query := `
+		INSERT INTO social_accounts (user_id, provider, provider_user_id, email, name, avatar)
+		VALUES (@user_id, @provider, @provider_user_id, @email, @name, @avatar)
+		ON CONFLICT (provider, provider_user_id)
+		DO UPDATE SET
+			email = EXCLUDED.email,
+			name = EXCLUDED.name,
+			avatar = EXCLUDED.avatar,
+			updated_at = CURRENT_TIMESTAMP
+		RETURNING id, user_id, provider, provider_user_id, email, name, avatar, created_at, updated_at
+	`
+
+	args := pgx.NamedArgs{
+		"user_id":          socialAccount.UserID,
+		"provider":         socialAccount.Provider,
+		"provider_user_id": socialAccount.ProviderUserID,
+		"email":            socialAccount.Email,
+		"name":             socialAccount.Name,
+		"avatar":           socialAccount.Avatar,
+	}
+
+	err := r.conn.QueryRow(context.Background(), query, args).Scan(
+		&socialAccount.ID,
+		&socialAccount.UserID,
+		&socialAccount.Provider,
+		&socialAccount.ProviderUserID,
+		&socialAccount.Email,
+		&socialAccount.Name,
+		&socialAccount.Avatar,
+		&socialAccount.CreatedAt,
+		&socialAccount.UpdatedAt,
+	)
+
+	if err != nil {
+		return domain.SocialAccount{}, fmt.Errorf("failed to insert or update social account: %w", err)
+	}
+
+	return socialAccount, nil
 }
 
 func (r *PostgresUserRepository) CreateSocialAccount(account domain.SocialAccount) domain.SocialAccount {
