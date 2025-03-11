@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 
 	"github.com/Joe5451/go-oauth2-server/internal/domain"
 	"github.com/jackc/pgx/v5"
@@ -81,7 +80,7 @@ func (r *PostgresUserRepository) GetUserByEmail(email string) (domain.User, erro
         SELECT u.id, u.email, u.name, u.avatar, s.id AS social_account_id, s.provider, s.provider_user_id, s.email, s.name, s.avatar FROM users u
         LEFT JOIN social_accounts s ON u.id = s.user_id
         WHERE u.email = @email
-	`
+    `
 
 	args := pgx.NamedArgs{
 		"email": email,
@@ -184,24 +183,23 @@ func (r *PostgresUserRepository) GetSocialAccountByProviderUserID(providerUserID
 	return socialAccount, nil
 }
 
-func (r *PostgresUserRepository) UpdateSocialAccount(account domain.SocialAccount) error {
+func (r *PostgresUserRepository) UpdateSocialAccountUserID(socialAccountID, userID int64) error {
 	query := `
         UPDATE social_accounts SET user_id = @user_id, updated_at = CURRENT_TIMESTAMP WHERE id = @social_account_id
     `
 
 	args := pgx.NamedArgs{
-		"user_id":           account.UserID,
-		"social_account_id": account.ID,
+		"social_account_id": socialAccountID,
+		"user_id":           userID,
 	}
 
 	cmdTag, err := r.conn.Exec(context.Background(), query, args)
 	if err != nil {
-		log.Printf("Error updating social account: %v\n", err)
 		return err
 	}
 
 	if cmdTag.RowsAffected() == 0 {
-		return fmt.Errorf("no social account updated (account: %v)", account)
+		return fmt.Errorf("no social account updated (account ID: %v, user ID: %v)", socialAccountID, userID)
 	}
 
 	return nil
