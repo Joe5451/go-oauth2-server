@@ -1,6 +1,9 @@
 package handlers
 
 import (
+	"errors"
+	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/Joe5451/go-oauth2-server/internal/application/ports/in"
@@ -17,6 +20,27 @@ func NewUserHandler(usecase in.UserUsecase) *UserHandler {
 	}
 }
 
+func handleError(c *gin.Context, err error) {
+	if errInfo, exists := errorMap[err]; exists {
+		c.JSON(errInfo.httpCode, gin.H{
+			"code":    errInfo.errorCode,
+			"message": errInfo.message,
+		})
+	} else if errors.Is(err, ErrValidation) {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    "VALIDATION_ERROR",
+			"message": err.Error(),
+		})
+	} else {
+		log.Printf("Register failed. error: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code":    "INTERNAL_ERROR",
+			"message": "An unexpected error occurred.",
+		})
+	}
+	return
+}
+
 func (h *UserHandler) CSRFToken(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
@@ -29,10 +53,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 	}{}
 
 	if err := c.ShouldBindJSON(&json); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"message": "請求參數錯誤，請檢查輸入",
-			"error":   err.Error(),
-		})
+		handleError(c, fmt.Errorf("%w: %v", ErrValidation, err.Error()))
 		return
 	}
 
@@ -43,10 +64,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 	})
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"message": "發生錯誤",
-			"error":   err.Error(),
-		})
+		handleError(c, err)
 		return
 	}
 
