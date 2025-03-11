@@ -32,7 +32,7 @@ func (u *UserService) Register(req in.RegisterUserRequest) error {
 	_, err = u.userRepo.CreateUser(domain.User{
 		Email:    req.Email,
 		Password: password,
-		Username: req.Username,
+		Name:     req.Name,
 	})
 	if err != nil {
 		return err
