@@ -22,7 +22,7 @@ func NewPostgresUserRepository(conn *pgx.Conn) *PostgresUserRepository {
 
 func (r *PostgresUserRepository) CreateUser(user domain.User) (domain.User, error) {
 	query := `
-        INSERT INTO users (email, password, name, avatar) VALUES (@email, @password, @name, @avatar) RETURNING id, email, name, avatar
+		INSERT INTO users (email, password, name, avatar) VALUES (@email, @password, @name, @avatar) RETURNING id, email, name, avatar
 	`
 
 	args := pgx.NamedArgs{
@@ -77,10 +77,10 @@ func (r *PostgresUserRepository) GetUser(userID int64) (domain.User, error) {
 func (r *PostgresUserRepository) GetUserByEmail(email string) (domain.User, error) {
 	// SQL query with left join to fetch user and associated social accounts
 	query := `
-        SELECT u.id, u.email, u.name, u.avatar, s.id AS social_account_id, s.provider, s.provider_user_id, s.email, s.name, s.avatar FROM users u
-        LEFT JOIN social_accounts s ON u.id = s.user_id
-        WHERE u.email = @email
-    `
+		SELECT u.id, u.email, u.name, u.avatar, s.id AS social_account_id, s.provider, s.provider_user_id, s.email, s.name, s.avatar FROM users u
+		LEFT JOIN social_accounts s ON u.id = s.user_id
+		WHERE u.email = @email
+	`
 
 	args := pgx.NamedArgs{
 		"email": email,
@@ -185,8 +185,8 @@ func (r *PostgresUserRepository) GetSocialAccountByProviderUserID(providerUserID
 
 func (r *PostgresUserRepository) UpdateSocialAccountUserID(socialAccountID, userID int64) error {
 	query := `
-        UPDATE social_accounts SET user_id = @user_id, updated_at = CURRENT_TIMESTAMP WHERE id = @social_account_id
-    `
+		UPDATE social_accounts SET user_id = @user_id, updated_at = CURRENT_TIMESTAMP WHERE id = @social_account_id
+	`
 
 	args := pgx.NamedArgs{
 		"social_account_id": socialAccountID,
