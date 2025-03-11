@@ -9,7 +9,6 @@ type UserRepository interface {
 	GetUser(userID int64) (domain.User, error)
 	GetUserByEmail(email string) (domain.User, error)
 	UpdateOrCreateSocialAccount(socialAccount domain.SocialAccount) (domain.SocialAccount, error)
-	CreateSocialAccount(account domain.SocialAccount) domain.SocialAccount
 	UpdateSocialAccount(account domain.SocialAccount) error
 	UpdateUser(usreID int64, user domain.User) error
 }

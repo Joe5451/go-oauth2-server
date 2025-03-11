@@ -158,10 +158,6 @@ func (r *PostgresUserRepository) UpdateOrCreateSocialAccount(socialAccount domai
 	return socialAccount, nil
 }
 
-func (r *PostgresUserRepository) CreateSocialAccount(account domain.SocialAccount) domain.SocialAccount {
-	return domain.SocialAccount{}
-}
-
 func (r *PostgresUserRepository) UpdateSocialAccount(account domain.SocialAccount) error {
 	query := `
         UPDATE social_accounts SET user_id = @user_id, updated_at = CURRENT_TIMESTAMP WHERE id = @social_account_id
