@@ -13,7 +13,6 @@ type PostgresUserRepository struct {
 }
 
 func NewPostgresUserRepository(conn *pgx.Conn) *PostgresUserRepository {
-	// func NewPostgresUserRepository(conn *pgx.Conn) repositories.UserRepository {
 	return &PostgresUserRepository{
 		conn: conn,
 	}
