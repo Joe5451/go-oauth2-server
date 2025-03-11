@@ -2,6 +2,7 @@ package http
 
 import (
 	"github.com/Joe5451/go-oauth2-server/internal/adapter/handlers"
+	"github.com/Joe5451/go-oauth2-server/internal/http/middlewares"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 
