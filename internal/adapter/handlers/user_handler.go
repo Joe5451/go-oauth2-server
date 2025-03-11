@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/Joe5451/go-oauth2-server/internal/application/ports/in"
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 )
 
@@ -49,7 +50,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 	json := struct {
 		Email    string `json:"email" binding:"required"`
 		Password string `json:"password" binding:"required"`
-		Username string `json:"name" binding:"required"`
+		Name     string `json:"name" binding:"required"`
 	}{}
 
 	if err := c.ShouldBindJSON(&json); err != nil {
@@ -60,13 +61,38 @@ func (h *UserHandler) Register(c *gin.Context) {
 	err := h.usecase.Register(in.RegisterUserRequest{
 		Email:    json.Email,
 		Password: json.Password,
-		Username: json.Username,
+		Name:     json.Name,
 	})
 
 	if err != nil {
 		handleError(c, err)
 		return
 	}
+
+	c.Status(http.StatusNoContent)
+}
+
+func (h *UserHandler) LoginWithEmail(c *gin.Context) {
+	json := struct {
+		Email    string `json:"email" binding:"required"`
+		Password string `json:"password" binding:"required"`
+	}{}
+
+	if err := c.ShouldBindJSON(&json); err != nil {
+		handleError(c, fmt.Errorf("%w: %v", ErrValidation, err.Error()))
+		return
+	}
+
+	user, err := h.usecase.AuthenticateUser(json.Email, json.Password)
+
+	if err != nil {
+		handleError(c, err)
+		return
+	}
+
+	session := sessions.Default(c)
+	session.Set("user_id", user.ID)
+	session.Save()
 
 	c.Status(http.StatusNoContent)
 }
