@@ -37,7 +37,7 @@ type UserUsecase interface {
 	AuthenticateUser(email, password string) (domain.User, error)
 	SocialAuthUrl(provider socialproviders.SocialProvider, state, redirectUri string) (string, error)
 	AuthenticateSocialUser(provider socialproviders.SocialProvider, authorizationCode, redirectUri string) (AuthSocialUserResult, error)
-	VerifyLinkUser(provider socialproviders.SocialProvider, authCode string, linkToken string, redirectUri string) (domain.User, error)
+	LinkUserWithSocialAccount(provider socialproviders.SocialProvider, authCode string, linkToken string, redirectUri string) (domain.User, error)
 	ValidateLinkToken(linkToken string) (LinkTokenClaims, error)
 	GetUser(userID int64) (domain.User, error)
 	UpdateUser(userID int64, user domain.User) error

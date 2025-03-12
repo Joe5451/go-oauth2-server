@@ -177,7 +177,7 @@ func (u *UserService) generateLinkToken(user domain.User, socialAccountID int64)
 	return token, nil
 }
 
-func (u *UserService) VerifyLinkUser(
+func (u *UserService) LinkUserWithSocialAccount(
 	provider socialproviders.SocialProvider,
 	authCode string,
 	linkToken string,
