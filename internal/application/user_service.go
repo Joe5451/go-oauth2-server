@@ -69,7 +69,6 @@ func (u *UserService) SocialAuthUrl(provider socialproviders.SocialProvider, sta
 	return config.AuthCodeURL(state, oauth2.AccessTypeOffline), nil
 }
 
-// This function needs refactoring.
 func (u *UserService) AuthenticateSocialUser(provider socialproviders.SocialProvider, authorizationCode, redirectUri string) (in.AuthSocialUserResult, error) {
 	if provider == nil {
 		return in.AuthSocialUserResult{}, domain.ErrInvalidProvider
@@ -80,6 +79,22 @@ func (u *UserService) AuthenticateSocialUser(provider socialproviders.SocialProv
 		return in.AuthSocialUserResult{}, err
 	}
 
+	socialAccount, err := u.updateOrCreateSocialAccount(provider, socialUser)
+	if err != nil {
+		return in.AuthSocialUserResult{}, err
+	}
+
+	if socialAccount.UserID != nil {
+		return u.authenticateLinkedUser(*socialAccount.UserID)
+	}
+
+	return u.handleUnlinkedSocialAccount(&socialAccount)
+}
+
+func (u *UserService) updateOrCreateSocialAccount(
+	provider socialproviders.SocialProvider,
+	socialUser socialproviders.SocialProviderUser,
+) (domain.SocialAccount, error) {
 	socialAccount, err := u.userRepo.UpdateOrCreateSocialAccount(domain.SocialAccount{
 		Provider:       provider.ProviderName(),
 		ProviderUserID: socialUser.ProviderUserID,
@@ -88,21 +103,24 @@ func (u *UserService) AuthenticateSocialUser(provider socialproviders.SocialProv
 		Avatar:         &socialUser.Avatar,
 	})
 	if err != nil {
-		return in.AuthSocialUserResult{}, fmt.Errorf("failed to update or create social account: %w", err)
+		return domain.SocialAccount{}, fmt.Errorf("failed to update or create social account: %w", err)
 	}
+	return socialAccount, nil
+}
 
-	if socialAccount.UserID != nil {
-		user, err := u.userRepo.GetUser(*socialAccount.UserID)
-		if err != nil {
-			return in.AuthSocialUserResult{}, fmt.Errorf("unable to retrieve user associated with social account: %w", err)
-		}
-		return in.AuthSocialUserResult{Status: in.AuthSuccess, User: user}, nil
+func (u *UserService) authenticateLinkedUser(userID int64) (in.AuthSocialUserResult, error) {
+	user, err := u.userRepo.GetUser(userID)
+	if err != nil {
+		return in.AuthSocialUserResult{}, fmt.Errorf("unable to retrieve user associated with social account: %w", err)
 	}
+	return in.AuthSocialUserResult{Status: in.AuthSuccess, User: user}, nil
+}
 
-	user, err := u.userRepo.GetUserByEmail(socialUser.Email)
+func (u *UserService) handleUnlinkedSocialAccount(socialAccount *domain.SocialAccount) (in.AuthSocialUserResult, error) {
+	user, err := u.userRepo.GetUserByEmail(*socialAccount.Email)
 	if err != nil {
 		if errors.Is(err, domain.ErrUserNotFound) {
-			user, err := u.createUserBySocialAccount(socialAccount)
+			user, err := u.createUserBySocialAccount(*socialAccount)
 			if err != nil {
 				return in.AuthSocialUserResult{}, fmt.Errorf("failed to create new user or link social account: %w", err)
 			}
