@@ -177,7 +177,10 @@ func (r *PostgresUserRepository) GetSocialAccountByProviderUserID(providerUserID
 		&socialAccount.UpdatedAt,
 	)
 	if err != nil {
-		return domain.SocialAccount{}, fmt.Errorf("Error fetching social account: %w", err)
+		if errors.Is(err, pgx.ErrNoRows) {
+			return domain.SocialAccount{}, domain.ErrSocialAccountNotFound
+		}
+		return domain.SocialAccount{}, err
 	}
 
 	return socialAccount, nil

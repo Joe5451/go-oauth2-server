@@ -183,15 +183,15 @@ func (u *UserService) LinkUserWithSocialAccount(
 	linkToken string,
 	redirectUri string,
 ) (domain.User, error) {
-	claims, err := u.ValidateLinkToken(linkToken)
-	if err != nil {
-		return domain.User{}, fmt.Errorf("invalid token: %w", err)
-	}
-	userID, socialAccountID := claims.UserID, claims.SocialAccountID
-
 	if provider == nil {
 		return domain.User{}, domain.ErrInvalidProvider
 	}
+
+	claims, err := u.ValidateLinkToken(linkToken)
+	if err != nil {
+		return domain.User{}, fmt.Errorf("%w: %v", domain.ErrInvalidLinkToken, err.Error())
+	}
+	userID, socialAccountID := claims.UserID, claims.SocialAccountID
 
 	socialUser, err := provider.GetUserInformationByAuthorizationCode(authCode, redirectUri)
 	if err != nil {
@@ -200,11 +200,11 @@ func (u *UserService) LinkUserWithSocialAccount(
 
 	socialAccount, err := u.userRepo.GetSocialAccountByProviderUserID(socialUser.ProviderUserID)
 	if err != nil {
-		return domain.User{}, fmt.Errorf("failed to get social account: %w", err)
+		return domain.User{}, err
 	}
 
 	if *socialAccount.UserID != userID {
-		return domain.User{}, fmt.Errorf("Mismatch the link user. login user ID: %v, linked user ID: %v", *socialAccount.UserID, userID)
+		return domain.User{}, domain.ErrMismatchedLinkedUser
 	}
 
 	err = u.userRepo.UpdateSocialAccountUserID(socialAccountID, userID)

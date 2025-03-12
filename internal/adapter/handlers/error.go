@@ -17,10 +17,12 @@ var errorMap = map[error]struct {
 	errorCode string
 	message   string
 }{
-	ErrUnauthorized:              {http.StatusUnauthorized, "UNAUTHORIZED", "Requires authentication."},
-	domain.ErrUserNotFound:       {http.StatusNotFound, "USER_NOT_FOUND", "The user does not exist."},
-	domain.ErrInvalidCredentials: {http.StatusUnauthorized, "INVALID_CREDENTIALS", "Incorrect email or password."},
-	domain.ErrDuplicateEmail:     {http.StatusConflict, "DUPLICATE_EMAIL", "The email is already in use."},
-	domain.ErrInvalidProvider:    {http.StatusBadRequest, "INVALID_SOCIAL_PROVIDER", "Invalid social provider."},
-	domain.ErrSocialUserFetch:    {http.StatusInternalServerError, "SOCIAL_PROVIDER_ERROR", "Failed to fetch user information from social provider."},
+	ErrUnauthorized:                {http.StatusUnauthorized, "UNAUTHORIZED", "Requires authentication."},
+	domain.ErrUserNotFound:         {http.StatusNotFound, "USER_NOT_FOUND", "The user does not exist."},
+	domain.ErrInvalidCredentials:   {http.StatusUnauthorized, "INVALID_CREDENTIALS", "Incorrect email or password."},
+	domain.ErrDuplicateEmail:       {http.StatusConflict, "DUPLICATE_EMAIL", "The email is already in use."},
+	domain.ErrInvalidProvider:      {http.StatusBadRequest, "INVALID_SOCIAL_PROVIDER", "Invalid social provider."},
+	domain.ErrSocialUserFetch:      {http.StatusInternalServerError, "SOCIAL_PROVIDER_ERROR", "Failed to fetch user information from social provider."},
+	domain.ErrInvalidLinkToken:     {http.StatusBadRequest, "INVALID_LINK_TOKEN", "Invalid link token."},
+	domain.ErrMismatchedLinkedUser: {http.StatusBadRequest, "MISMATCHED_LINKED_USER", "The linked social account belongs to a different user."},
 }
