@@ -22,4 +22,5 @@ var errorMap = map[error]struct {
 	domain.ErrInvalidCredentials: {http.StatusUnauthorized, "INVALID_CREDENTIALS", "Incorrect email or password."},
 	domain.ErrDuplicateEmail:     {http.StatusConflict, "DUPLICATE_EMAIL", "The email is already in use."},
 	domain.ErrInvalidProvider:    {http.StatusBadRequest, "INVALID_SOCIAL_PROVIDER", "Invalid social provider."},
+	domain.ErrSocialUserFetch:    {http.StatusInternalServerError, "SOCIAL_PROVIDER_ERROR", "Failed to fetch user information from social provider."},
 }

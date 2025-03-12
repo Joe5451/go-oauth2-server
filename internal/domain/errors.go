@@ -8,4 +8,5 @@ var (
 	ErrInvalidCredentials    = errors.New("invalid credentials")
 	ErrSocialAccountNotFound = errors.New("social account not found")
 	ErrDuplicateEmail        = errors.New("duplicate email found")
+	ErrSocialUserFetch       = errors.New("failed to fetch user information from social provider")
 )
