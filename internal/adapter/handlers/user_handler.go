@@ -78,3 +78,26 @@ func (h *UserHandler) LoginWithEmail(c *gin.Context) {
 
 	c.Status(http.StatusNoContent)
 }
+
+func (h *UserHandler) GetUser(c *gin.Context) {
+	session := sessions.Default(c)
+	v := session.Get("user_id")
+
+	if v == nil {
+		c.Error(ErrUnauthorized)
+		return
+	}
+
+	userID := v.(int64)
+	user, err := h.usecase.GetUser(userID)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"email":  user.Email,
+		"name":   user.Name,
+		"avatar": user.Avatar,
+	})
+}
