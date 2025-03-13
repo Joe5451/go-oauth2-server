@@ -27,6 +27,8 @@ type Config struct {
 	TwitchOauth2ClientID     string `mapstructure:"TWITCH_OAUTH2_CLIENT_ID"`
 	TwitchOauth2ClientSecret string `mapstructure:"TWITCH_OAUTH2_CLIENT_SECRET"`
 
+	JwtSecret string `mapstructure:"JWT_SECRET_KEY"`
+
 	CSRFSecret string `mapstructure:"CSRF_SECRET_KEY"`
 	CSRFSecure bool   `mapstructure:"CSRF_SECURE"`
 }

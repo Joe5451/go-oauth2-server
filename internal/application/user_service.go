@@ -7,6 +7,7 @@ import (
 
 	"github.com/Joe5451/go-oauth2-server/internal/application/ports/in"
 	"github.com/Joe5451/go-oauth2-server/internal/application/ports/out"
+	"github.com/Joe5451/go-oauth2-server/internal/config"
 	"github.com/Joe5451/go-oauth2-server/internal/domain"
 	"github.com/Joe5451/go-oauth2-server/internal/socialproviders"
 	"github.com/golang-jwt/jwt"
@@ -173,7 +174,7 @@ func (u *UserService) generateLinkToken(user domain.User, socialAccountID int64)
 		},
 	}
 
-	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString([]byte("temp_secret"))
+	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString([]byte(config.AppConfig.JwtSecret))
 	if err != nil {
 		return "", err
 	}
@@ -219,7 +220,7 @@ func (u *UserService) LinkUserWithSocialAccount(
 }
 
 func (u *UserService) ValidateLinkToken(linkToken string) (in.LinkTokenClaims, error) {
-	secretKey := []byte("temp_secret")
+	secretKey := []byte(config.AppConfig.JwtSecret)
 
 	var claims in.LinkTokenClaims
 
