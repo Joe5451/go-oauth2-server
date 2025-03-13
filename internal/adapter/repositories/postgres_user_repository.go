@@ -77,7 +77,7 @@ func (r *PostgresUserRepository) GetUser(userID int64) (domain.User, error) {
 func (r *PostgresUserRepository) GetUserByEmail(email string) (domain.User, error) {
 	// SQL query with left join to fetch user and associated social accounts
 	query := `
-		SELECT u.id, u.email, u.name, u.avatar, s.id AS social_account_id, s.provider, s.provider_user_id, s.email, s.name, s.avatar FROM users u
+		SELECT u.id, u.email, u.password, u.name, u.avatar, s.id AS social_account_id, s.provider, s.provider_user_id, s.email, s.name, s.avatar FROM users u
 		LEFT JOIN social_accounts s ON u.id = s.user_id
 		WHERE u.email = @email
 	`
@@ -99,7 +99,7 @@ func (r *PostgresUserRepository) GetUserByEmail(email string) (domain.User, erro
 		var account domain.SocialAccount
 
 		err := rows.Scan(
-			&user.ID, &user.Email, &user.Name, &user.Avatar,
+			&user.ID, &user.Email, &user.Password, &user.Name, &user.Avatar,
 			&account.ID, &account.Provider, &account.ProviderUserID, &account.Email, &account.Name, &account.Avatar,
 		)
 		if err != nil {
