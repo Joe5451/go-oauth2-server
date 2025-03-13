@@ -96,16 +96,26 @@ func (r *PostgresUserRepository) GetUserByEmail(email string) (domain.User, erro
 	var socialAccounts []domain.SocialAccount
 
 	for rows.Next() {
-		var account domain.SocialAccount
+		var accountID *int64                                      // Nullable social account ID, as a user may not have one.
+		var provider, providerUserID, email, name, avatar *string // Nullable fields for social account details.
 
 		err := rows.Scan(
 			&user.ID, &user.Email, &user.Password, &user.Name, &user.Avatar,
-			&account.ID, &account.Provider, &account.ProviderUserID, &account.Email, &account.Name, &account.Avatar,
+			&accountID, &provider, &providerUserID, &email, &name, &avatar,
 		)
 		if err != nil {
 			return domain.User{}, fmt.Errorf("Error Fetching user and social account: %w", err)
 		}
-		socialAccounts = append(socialAccounts, account)
+		if accountID != nil {
+			socialAccounts = append(socialAccounts, domain.SocialAccount{
+				ID:             *accountID,
+				Provider:       *provider,
+				ProviderUserID: *providerUserID,
+				Email:          email,
+				Name:           name,
+				Avatar:         avatar,
+			})
+		}
 	}
 
 	if user.ID == 0 {
