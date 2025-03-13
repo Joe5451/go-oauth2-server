@@ -12,7 +12,7 @@ import (
 
 func CSRF() gin.HandlerFunc {
 	csrfMiddleware := csrf.Protect(
-		[]byte("32-byte-long-auth-key"),
+		[]byte(config.AppConfig.CSRFSecret),
 		csrf.Path("/"),
 		csrf.HttpOnly(true),
 		csrf.Secure(config.AppConfig.CSRFSecure),
