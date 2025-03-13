@@ -13,6 +13,11 @@ type Config struct {
 	DBPassword string `mapstructure:"DB_PASSWORD"`
 	DBName     string `mapstructure:"DB_NAME"`
 
+	RedisHost     string `mapstructure:"REDIS_HOST"`
+	RedisPort     string `mapstructure:"REDIS_PORT"`
+	RedisPassword string `mapstructure:"REDIS_PASSWORD"`
+	RedisSecret   string `mapstructure:"REDIS_SECRET"`
+
 	GoogleOauth2ClientID     string `mapstructure:"GOOGLE_OAUTH2_CLIENT_ID"`
 	GoogleOauth2ClientSecret string `mapstructure:"GOOGLE_OAUTH2_CLIENT_SECRET"`
 
