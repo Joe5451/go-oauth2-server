@@ -3,6 +3,7 @@ package socialproviders
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 
@@ -58,7 +59,11 @@ func (p *FacebookProvider) GetUserInformationByAuthorizationCode(code, redirectU
 	config := p.NewOauth2Config(redirectUri)
 	token, err := config.Exchange(context.Background(), code)
 	if err != nil {
-		return SocialProviderUser{}, fmt.Errorf("failed to exchange token: %w", err)
+		var retrieveError *oauth2.RetrieveError
+		if errors.As(err, &retrieveError) {
+			return SocialProviderUser{}, fmt.Errorf("%w: %v", ErrOAuth2RetrieveError, retrieveError.ErrorCode)
+		}
+		return SocialProviderUser{}, err
 	}
 
 	client := config.Client(context.Background(), token)

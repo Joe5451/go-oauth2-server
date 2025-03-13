@@ -26,6 +26,6 @@ func NewSocialProvider(provider string) (SocialProvider, error) {
 	case "facebook":
 		return NewFacebookProvider(), nil
 	default:
-		return nil, fmt.Errorf("unsupported provider: %s", provider)
+		return nil, fmt.Errorf("%w: %s", ErrInvalidProvider, provider)
 	}
 }

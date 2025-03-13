@@ -2,6 +2,7 @@ package socialproviders
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/Joe5451/go-oauth2-server/internal/config"
@@ -52,7 +53,11 @@ func (p *GoogleProvider) GetUserInformationByAuthorizationCode(code, redirectUri
 	config := p.NewOauth2Config(redirectUri)
 	token, err := config.Exchange(context.Background(), code)
 	if err != nil {
-		return SocialProviderUser{}, fmt.Errorf("failed to fetch user info: %w", err)
+		var retrieveError *oauth2.RetrieveError
+		if errors.As(err, &retrieveError) {
+			return SocialProviderUser{}, fmt.Errorf("%w: %v", ErrOAuth2RetrieveError, retrieveError.ErrorCode)
+		}
+		return SocialProviderUser{}, err
 	}
 
 	rawIdToken := token.Extra("id_token").(string)
