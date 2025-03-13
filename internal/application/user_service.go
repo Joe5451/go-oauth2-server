@@ -50,6 +50,9 @@ func (u *UserService) hashPassword(password string) (string, error) {
 func (u *UserService) AuthenticateUser(email, password string) (domain.User, error) {
 	user, err := u.userRepo.GetUserByEmail(email)
 	if err != nil {
+		if errors.Is(err, domain.ErrUserNotFound) {
+			return domain.User{}, domain.ErrInvalidCredentials
+		}
 		return domain.User{}, err
 	}
 
