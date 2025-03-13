@@ -16,6 +16,9 @@ func NewRouter(userHandler *handlers.UserHandler) *gin.Engine {
 	store := cookie.NewStore([]byte("secret"))
 	router.Use(sessions.Sessions("usersession", store))
 
+	// Set up error handler
+	router.Use(middlewares.InitErrorHandler())
+
 	// setup csrf middleware
 	router.Use(middlewares.CSRF())
 	router.Use(middlewares.CSRFToken())
