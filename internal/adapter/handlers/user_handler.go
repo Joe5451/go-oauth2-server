@@ -209,3 +209,35 @@ func (h *UserHandler) LinkSocialAuthUrl(c *gin.Context) {
 		"link_auth_url": url,
 	})
 }
+
+func (h *UserHandler) LinkUserWithSocialAccount(c *gin.Context) {
+	json := struct {
+		Provider    string `json:"provider" binding:"required"`
+		Code        string `json:"code" binding:"required"`
+		LinkToken   string `json:"link_token" binding:"required"`
+		RedirectURI string `json:"redirect_uri" binding:"required"`
+	}{}
+
+	if err := c.ShouldBindJSON(&json); err != nil {
+		c.Error(fmt.Errorf("%w: %v", ErrValidation, err.Error()))
+		return
+	}
+
+	provider, err := socialproviders.NewSocialProvider(json.Provider)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	user, err := h.usecase.LinkUserWithSocialAccount(provider, json.Code, json.LinkToken, json.RedirectURI)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	session := sessions.Default(c)
+	session.Set("user_id", user.ID)
+	session.Save()
+
+	c.Status(http.StatusNoContent)
+}
