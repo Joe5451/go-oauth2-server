@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 
 	"github.com/Joe5451/go-oauth2-server/internal/config"
 
@@ -61,27 +60,23 @@ func (p *FacebookProvider) GetUserInformationByAuthorizationCode(code, redirectU
 	if err != nil {
 		var retrieveError *oauth2.RetrieveError
 		if errors.As(err, &retrieveError) {
-			return SocialProviderUser{}, fmt.Errorf("%w: %v", ErrOAuth2RetrieveError, retrieveError.ErrorCode)
+			return SocialProviderUser{}, fmt.Errorf("%w: %v", ErrOAuth2RetrieveError, retrieveError)
 		}
-		return SocialProviderUser{}, err
+		return SocialProviderUser{}, fmt.Errorf("failed to exchange authorization code: %w", err)
 	}
 
 	client := config.Client(context.Background(), token)
 	resp, err := client.Get("https://graph.facebook.com/v13.0/me?fields=id,name,email,picture")
 	if err != nil {
-		return SocialProviderUser{}, fmt.Errorf("failed to fetch user info: %w", err)
+		return SocialProviderUser{}, fmt.Errorf("failed to fetch user info from Facebook: %w", err)
 	}
 
 	defer resp.Body.Close()
 
 	var user FacebookUser
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return SocialProviderUser{}, fmt.Errorf("failed to read response body: %w", err)
+	if err := json.NewDecoder(resp.Body).Decode(&user); err != nil {
+		return SocialProviderUser{}, fmt.Errorf("failed to decode Facebook user info response: %v", err)
 	}
-
-	json.Unmarshal(body, &user)
 
 	return SocialProviderUser{
 		ProviderUserID: user.ID,
