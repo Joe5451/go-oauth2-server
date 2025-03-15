@@ -199,7 +199,7 @@ func (u *UserService) LinkUserWithSocialAccount(
 
 	socialUser, err := provider.GetUserInformationByAuthorizationCode(authCode, redirectUri)
 	if err != nil {
-		return domain.User{}, fmt.Errorf("failed to get user information from social provider: %w", err)
+		return domain.User{}, err
 	}
 
 	socialAccount, err := u.userRepo.GetSocialAccountByProviderUserID(socialUser.ProviderUserID)
@@ -232,7 +232,7 @@ func (u *UserService) ValidateLinkToken(linkToken string) (in.LinkTokenClaims, e
 	})
 
 	if err != nil {
-		return in.LinkTokenClaims{}, fmt.Errorf("invalid token: %v", err)
+		return in.LinkTokenClaims{}, err
 	}
 
 	if time.Unix(claims.ExpiresAt, 0).Before(time.Now()) {
