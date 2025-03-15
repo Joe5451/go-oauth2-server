@@ -142,3 +142,43 @@ func (h *UserHandler) SocialAuthURL(c *gin.Context) {
 		"auth_url": url,
 	})
 }
+
+func (h *UserHandler) SocialAuthCallback(c *gin.Context) {
+	json := struct {
+		Provider    string `json:"provider" binding:"required"`
+		Code        string `json:"code" binding:"required"`
+		State       string `json:"state" binding:"required"`
+		RedirectURI string `json:"redirect_uri" binding:"required"`
+	}{}
+
+	if err := c.ShouldBindJSON(&json); err != nil {
+		c.Error(fmt.Errorf("%w: %v", ErrValidation, err.Error()))
+		return
+	}
+
+	provider, err := socialproviders.NewSocialProvider(json.Provider)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	result, err := h.usecase.AuthenticateSocialUser(provider, json.Code, json.RedirectURI)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	if result.Status == in.AuthLinkRequired {
+		c.JSON(http.StatusOK, gin.H{
+			"code":       in.AuthLinkRequired,
+			"link_token": result.LinkToken,
+		})
+		return
+	}
+
+	session := sessions.Default(c)
+	session.Set("user_id", result.User.ID)
+	session.Save()
+
+	c.Status(http.StatusNoContent)
+}
