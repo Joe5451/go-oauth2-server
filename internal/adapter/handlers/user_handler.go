@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/Joe5451/go-oauth2-server/internal/application/ports/in"
+	"github.com/Joe5451/go-oauth2-server/internal/socialproviders"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 )
@@ -114,4 +115,30 @@ func (h *UserHandler) Logout(c *gin.Context) {
 	session.Delete("user_id")
 	session.Save()
 	c.Status(http.StatusNoContent)
+}
+
+func (h *UserHandler) SocialAuthURL(c *gin.Context) {
+	providerName := c.Param("provider")
+	redirectUri := c.Query("redirect_uri")
+
+	provider, err := socialproviders.NewSocialProvider(providerName)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	state := "state"
+	url, err := h.usecase.SocialAuthUrl(provider, state, redirectUri)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	session := sessions.Default(c)
+	session.Set("state", state)
+	session.Save()
+
+	c.IndentedJSON(http.StatusOK, gin.H{
+		"auth_url": url,
+	})
 }
