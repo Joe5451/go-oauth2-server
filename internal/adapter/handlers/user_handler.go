@@ -101,3 +101,17 @@ func (h *UserHandler) GetUser(c *gin.Context) {
 		"avatar": user.Avatar,
 	})
 }
+
+func (h *UserHandler) Logout(c *gin.Context) {
+	session := sessions.Default(c)
+	v := session.Get("user_id")
+
+	if v == nil {
+		c.Error(ErrUnauthorized)
+		return
+	}
+
+	session.Delete("user_id")
+	session.Save()
+	c.Status(http.StatusNoContent)
+}
