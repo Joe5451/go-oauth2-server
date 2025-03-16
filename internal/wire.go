@@ -25,6 +25,7 @@ var providerSet wire.ProviderSet = wire.NewSet(
 	application.NewUserService,
 
 	handlers.NewUserHandler,
+	handlers.NewTemplateHandler,
 
 	http.NewRouter,
 )

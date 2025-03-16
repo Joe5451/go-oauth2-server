@@ -11,7 +11,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func NewRouter(userHandler *handlers.UserHandler) *gin.Engine {
+func NewRouter(
+	userHandler *handlers.UserHandler,
+	templateHandler *handlers.TemplateHandler,
+) *gin.Engine {
 	router := gin.Default()
 
 	// Set up a redis session
@@ -50,6 +53,13 @@ func NewRouter(userHandler *handlers.UserHandler) *gin.Engine {
 
 	router.POST("/user/link/:provider", userHandler.LinkSocialAccount)
 	router.DELETE("/user/unlink/:provider", userHandler.UnlinkSocialAccount)
+
+	// Template
+	router.Static("/assets", "./web/assets")
+	router.LoadHTMLGlob("web/templates/*.tmpl")
+
+	router.GET("/template/login", templateHandler.Login)
+	router.GET("/template/user/social-links", templateHandler.SocialLinks)
 
 	return router
 }
