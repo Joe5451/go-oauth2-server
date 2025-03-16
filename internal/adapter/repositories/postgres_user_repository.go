@@ -46,46 +46,27 @@ func (r *PostgresUserRepository) CreateUser(user domain.User) (domain.User, erro
 
 func (r *PostgresUserRepository) GetUser(userID int64) (domain.User, error) {
 	query := `
-		SELECT id, email, password, name, avatar, created_at, updated_at FROM users WHERE id = @id
+		SELECT u.id, u.email, u.password, u.name, u.avatar,
+		       s.id AS social_account_id, s.provider, s.provider_user_id, s.email, s.name, s.avatar
+		FROM users u
+		LEFT JOIN social_accounts s ON u.id = s.user_id
+		WHERE u.id = @id
 	`
-
-	args := pgx.NamedArgs{
-		"id": userID,
-	}
-
-	var user domain.User
-	err := r.conn.QueryRow(context.Background(), query, args).Scan(
-		&user.ID,
-		&user.Email,
-		&user.Password,
-		&user.Name,
-		&user.Avatar,
-		&user.CreatedAt,
-		&user.UpdatedAt,
-	)
-
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return domain.User{}, domain.ErrUserNotFound
-		}
-		return domain.User{}, err
-	}
-
-	return user, nil
+	return r.queryUserByArgs(query, pgx.NamedArgs{"id": userID})
 }
 
 func (r *PostgresUserRepository) GetUserByEmail(email string) (domain.User, error) {
-	// SQL query with left join to fetch user and associated social accounts
 	query := `
-		SELECT u.id, u.email, u.password, u.name, u.avatar, s.id AS social_account_id, s.provider, s.provider_user_id, s.email, s.name, s.avatar FROM users u
+		SELECT u.id, u.email, u.password, u.name, u.avatar,
+		       s.id AS social_account_id, s.provider, s.provider_user_id, s.email, s.name, s.avatar
+		FROM users u
 		LEFT JOIN social_accounts s ON u.id = s.user_id
 		WHERE u.email = @email
 	`
+	return r.queryUserByArgs(query, pgx.NamedArgs{"email": email})
+}
 
-	args := pgx.NamedArgs{
-		"email": email,
-	}
-
+func (r *PostgresUserRepository) queryUserByArgs(query string, args pgx.NamedArgs) (domain.User, error) {
 	rows, err := r.conn.Query(context.Background(), query, args)
 	if err != nil {
 		return domain.User{}, err
@@ -93,7 +74,7 @@ func (r *PostgresUserRepository) GetUserByEmail(email string) (domain.User, erro
 	defer rows.Close()
 
 	var user domain.User
-	var socialAccounts []domain.SocialAccount
+	user.SocialAccounts = []domain.SocialAccount{}
 
 	for rows.Next() {
 		var accountID *int64                                      // Nullable social account ID, as a user may not have one.
@@ -107,7 +88,7 @@ func (r *PostgresUserRepository) GetUserByEmail(email string) (domain.User, erro
 			return domain.User{}, fmt.Errorf("Error Fetching user and social account: %w", err)
 		}
 		if accountID != nil {
-			socialAccounts = append(socialAccounts, domain.SocialAccount{
+			user.SocialAccounts = append(user.SocialAccounts, domain.SocialAccount{
 				ID:             *accountID,
 				Provider:       *provider,
 				ProviderUserID: *providerUserID,
@@ -122,7 +103,6 @@ func (r *PostgresUserRepository) GetUserByEmail(email string) (domain.User, erro
 		return domain.User{}, domain.ErrUserNotFound
 	}
 
-	user.SocialAccounts = socialAccounts
 	return user, nil
 }
 

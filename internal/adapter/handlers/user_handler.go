@@ -96,11 +96,7 @@ func (h *UserHandler) GetUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"email":  user.Email,
-		"name":   user.Name,
-		"avatar": user.Avatar,
-	})
+	c.JSON(http.StatusOK, user)
 }
 
 func (h *UserHandler) Logout(c *gin.Context) {
