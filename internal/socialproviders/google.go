@@ -63,12 +63,12 @@ func (p *GoogleProvider) GetUserInformationByAuthorizationCode(code, redirectUri
 	rawIdToken := token.Extra("id_token").(string)
 	idToken, _, err := new(jwt.Parser).ParseUnverified(rawIdToken, &GoogleClaims{})
 	if err != nil {
-		return SocialProviderUser{}, fmt.Errorf("failed to parse id_token: %w", err)
+		return SocialProviderUser{}, fmt.Errorf("failed to parse Google id_token: %w", err)
 	}
 
 	claims, ok := idToken.Claims.(*GoogleClaims)
 	if !ok {
-		return SocialProviderUser{}, fmt.Errorf("failed to extract claims from id_token")
+		return SocialProviderUser{}, fmt.Errorf("failed to extract user claims from Google id_token: invalid claims format")
 	}
 
 	return SocialProviderUser{
