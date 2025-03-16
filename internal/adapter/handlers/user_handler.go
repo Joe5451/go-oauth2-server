@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"net/http"
@@ -14,6 +16,7 @@ import (
 var (
 	ErrValidation   = errors.New("Validation error")
 	ErrUnauthorized = errors.New("Requires authentication.")
+	ErrInvalidState = errors.New("Invalid state.")
 )
 
 type UserHandler struct {
@@ -236,4 +239,52 @@ func (h *UserHandler) LinkUserWithSocialAccount(c *gin.Context) {
 	session.Save()
 
 	c.Status(http.StatusNoContent)
+}
+
+func (h *UserHandler) LinkSocialAccount(c *gin.Context) {
+	session := sessions.Default(c)
+	v := session.Get("user_id")
+	if v == nil {
+		c.Error(ErrUnauthorized)
+		return
+	}
+	userID := v.(int64)
+
+	provider, err := socialproviders.NewSocialProvider(c.Param("provider"))
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	json := struct {
+		Code        string `json:"code" binding:"required"`
+		State       string `json:"state" binding:"required"`
+		RedirectURI string `json:"redirect_uri" binding:"required"`
+	}{}
+	if err := c.ShouldBindJSON(&json); err != nil {
+		c.Error(fmt.Errorf("%w: %v", ErrValidation, err.Error()))
+		return
+	}
+
+	v = session.Get("state")
+	if v == nil || v.(string) != json.State {
+		c.Error(ErrInvalidState)
+		return
+	}
+
+	if err := h.usecase.LinkSocialAccount(userID, provider, json.Code, json.RedirectURI); err != nil {
+		c.Error(err)
+		return
+	}
+
+	c.Status(http.StatusNoContent)
+}
+
+func generateState() (string, error) {
+	bytes := make([]byte, 32)
+	if _, err := rand.Read(bytes); err != nil {
+		return "", fmt.Errorf("failed to generate random state: %w", err)
+	}
+
+	return hex.EncodeToString(bytes), nil
 }

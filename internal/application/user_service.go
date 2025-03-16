@@ -254,3 +254,30 @@ func (u *UserService) UpdateUser(userID int64, user domain.User) error {
 	err := u.userRepo.UpdateUser(userID, user)
 	return err
 }
+
+func (u *UserService) LinkSocialAccount(userID int64, provider socialproviders.SocialProvider, authCode, redirectUri string) error {
+	if provider == nil {
+		return domain.ErrInvalidProvider
+	}
+
+	socialUser, err := provider.GetUserInformationByAuthorizationCode(authCode, redirectUri)
+	if err != nil {
+		return err
+	}
+
+	socialAccount, err := u.updateOrCreateSocialAccount(provider, socialUser)
+	if err != nil {
+		return err
+	}
+
+	if socialAccount.UserID != nil {
+		return domain.ErrSocialAccountAlreadyLinked
+	}
+
+	err = u.userRepo.UpdateSocialAccountUserID(socialAccount.ID, userID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

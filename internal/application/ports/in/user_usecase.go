@@ -41,4 +41,5 @@ type UserUsecase interface {
 	ValidateLinkToken(linkToken string) (LinkTokenClaims, error)
 	GetUser(userID int64) (domain.User, error)
 	UpdateUser(userID int64, user domain.User) error
+	LinkSocialAccount(userID int64, provider socialproviders.SocialProvider, authCode, redirectUri string) error
 }

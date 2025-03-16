@@ -48,5 +48,7 @@ func NewRouter(userHandler *handlers.UserHandler) *gin.Engine {
 	// router.POST("/auth/:provider/callback", userHandler.HandleOAuth2Callback)
 	// router.PATCH("/user", userHandler.UpdateUser)
 
+	router.POST("/user/link/:provider", userHandler.LinkSocialAccount)
+
 	return router
 }

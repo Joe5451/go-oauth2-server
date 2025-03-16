@@ -115,6 +115,12 @@ func InitErrorHandler() gin.HandlerFunc {
 				"message": "The linked social account belongs to a different user.",
 			})
 		}),
+		Map(domain.ErrSocialAccountAlreadyLinked).ToResponse(func(c *gin.Context, err error) {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"code":    "SOCIAL_ACCOUNT_ALREADY_LINKED",
+				"message": "The social account has already been linked to another user.",
+			})
+		}),
 		Map(socialproviders.ErrOAuth2RetrieveError).ToResponse(func(c *gin.Context, err error) {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"code":    "OAUTH2_RETRIEVE_ERROR",
