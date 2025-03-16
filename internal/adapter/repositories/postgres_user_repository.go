@@ -201,3 +201,25 @@ func (r *PostgresUserRepository) UpdateSocialAccountUserID(socialAccountID, user
 func (r *PostgresUserRepository) UpdateUser(usreID int64, user domain.User) error {
 	return nil
 }
+
+func (r *PostgresUserRepository) UnlinkSocialAccount(userID int64, provider string) error {
+	query := `
+		UPDATE social_accounts SET user_id = null, updated_at = CURRENT_TIMESTAMP WHERE user_id = @user_id AND provider = @provider
+	`
+
+	args := pgx.NamedArgs{
+		"user_id":  userID,
+		"provider": provider,
+	}
+
+	cmdTag, err := r.conn.Exec(context.Background(), query, args)
+	if err != nil {
+		return err
+	}
+
+	if cmdTag.RowsAffected() == 0 {
+		return domain.ErrSocialAccountAlreadyUnlinked
+	}
+
+	return nil
+}

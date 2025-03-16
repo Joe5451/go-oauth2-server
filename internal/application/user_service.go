@@ -281,3 +281,15 @@ func (u *UserService) LinkSocialAccount(userID int64, provider socialproviders.S
 
 	return nil
 }
+
+func (u *UserService) UnlinkSocialAccount(userID int64, provider socialproviders.SocialProvider) error {
+	if provider == nil {
+		return domain.ErrInvalidProvider
+	}
+
+	if err := u.userRepo.UnlinkSocialAccount(userID, provider.ProviderName()); err != nil {
+		return err
+	}
+
+	return nil
+}

@@ -121,6 +121,12 @@ func InitErrorHandler() gin.HandlerFunc {
 				"message": "The social account has already been linked to another user.",
 			})
 		}),
+		Map(domain.ErrSocialAccountAlreadyUnlinked).ToResponse(func(c *gin.Context, err error) {
+			c.JSON(http.StatusConflict, gin.H{
+				"code":    "SOCIAL_ACCOUNT_ALREADY_UNLINKED",
+				"message": "The social account has either not been linked or has already been unlinked.",
+			})
+		}),
 		Map(socialproviders.ErrOAuth2RetrieveError).ToResponse(func(c *gin.Context, err error) {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"code":    "OAUTH2_RETRIEVE_ERROR",

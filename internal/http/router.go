@@ -49,6 +49,7 @@ func NewRouter(userHandler *handlers.UserHandler) *gin.Engine {
 	// router.PATCH("/user", userHandler.UpdateUser)
 
 	router.POST("/user/link/:provider", userHandler.LinkSocialAccount)
+	router.DELETE("/user/unlink/:provider", userHandler.UnlinkSocialAccount)
 
 	return router
 }
