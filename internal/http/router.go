@@ -44,7 +44,7 @@ func NewRouter(
 	router.GET("/login/social/:provider", userHandler.SocialAuthURL)
 	router.POST("/login/social/callback", userHandler.SocialAuthCallback)
 
-	router.GET("/auth/social/:provider/link/url", userHandler.LinkSocialAuthUrl)
+	router.GET("/auth/social/:provider/link/url", userHandler.SocialAuthUrlForLinkingExistingUser)
 	router.POST("/auth/social/link", userHandler.LinkUserWithSocialAccount)
 
 	// router.GET("/auth/:provider/url", userHandler.GenerateAuthUrl)

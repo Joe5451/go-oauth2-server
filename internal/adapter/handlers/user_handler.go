@@ -182,7 +182,7 @@ func (h *UserHandler) SocialAuthCallback(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
-func (h *UserHandler) LinkSocialAuthUrl(c *gin.Context) {
+func (h *UserHandler) SocialAuthUrlForLinkingExistingUser(c *gin.Context) {
 	providerName := c.Param("provider")
 	redirectUri := c.Query("redirect_uri")
 	linkToken := c.Query("link_token")
