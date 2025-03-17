@@ -280,6 +280,29 @@ func (h *UserHandler) LinkSocialAccount(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
+func (h *UserHandler) UnlinkSocialAccount(c *gin.Context) {
+	session := sessions.Default(c)
+	v := session.Get("user_id")
+	if v == nil {
+		c.Error(ErrUnauthorized)
+		return
+	}
+	userID := v.(int64)
+
+	provider, err := socialproviders.NewSocialProvider(c.Param("provider"))
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	if err := h.usecase.UnlinkSocialAccount(userID, provider); err != nil {
+		c.Error(err)
+		return
+	}
+
+	c.Status(http.StatusNoContent)
+}
+
 func generateState() (string, error) {
 	bytes := make([]byte, 32)
 	if _, err := rand.Read(bytes); err != nil {
