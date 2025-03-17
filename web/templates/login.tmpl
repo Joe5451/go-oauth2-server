@@ -5,7 +5,7 @@
 			<div class="mb-4">
 				<label for="email" class="block text-sm font-medium leading-6 text-gray-900">Email</label>
 				<div class="mt-2">
-					<input id="email" wire:model="email" type="email" required class="block w-full rounded-md
+					<input id="email" type="email" required class="block w-full rounded-md
 						border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300
 						placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600
 						sm:text-sm sm:leading-6">
@@ -17,7 +17,7 @@
 					<label for="password" class="block text-sm font-medium leading-6 text-gray-900">密碼</label>
 				</div>
 				<div class="mt-2">
-					<input id="password" wire:model="password" type="password" required class="block w-full
+					<input id="password" type="password" required class="block w-full
 						rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300
 						placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600
 						sm:text-sm sm:leading-6">
@@ -25,7 +25,7 @@
 			</div>
 
 			<div>
-                <button type="submit" class="cursor-pointer mt-8 flex w-full justify-center rounded-md bg-stone-950
+                <button type="button" onclick="login()" class="cursor-pointer mt-8 flex w-full justify-center rounded-md bg-stone-950
                     px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-stone-700
                     focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2
                     focus-visible:outline-indigo-600">
@@ -54,4 +54,39 @@
         </div>
 	</div>
 </div>
+
+<script>
+	getCSRFToken();
+
+	getUser()
+        .then(response => response.data)
+        .then(user => {
+			window.location.href = '/template/user/social-links';
+        })
+		.catch(error => {
+            if (error.response.status !== 401) {
+                console.error('Error fetching user info:', error);
+            } else {
+				closeLoading();
+			}
+        });
+
+	function login() {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+
+        loginWithEmail(email, password)
+            .then(data => {
+                console.log("Logged in:", data);
+				window.location.href = '/template/user/social-links';
+            })
+            .catch(error => {
+				if (error.response.status == 401) {
+					alert('Email 或密碼錯誤，請重新嘗試');
+				} else {
+					console.error("Login failed:", error);
+				}
+            });
+    }
+</script>
 {{template "footer" .}}

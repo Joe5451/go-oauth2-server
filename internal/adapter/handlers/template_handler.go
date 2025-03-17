@@ -15,12 +15,14 @@ func NewTemplateHandler() *TemplateHandler {
 
 func (h *TemplateHandler) Login(c *gin.Context) {
 	c.HTML(http.StatusOK, "login.tmpl", gin.H{
-		"title": "Login",
+		"title":   "Login",
+		"showNav": false,
 	})
 }
 
 func (h *TemplateHandler) SocialLinks(c *gin.Context) {
 	c.HTML(http.StatusOK, "social_links.tmpl", gin.H{
-		"title": "User Social Links",
+		"title":   "User Social Links",
+		"showNav": true,
 	})
 }

@@ -19,7 +19,7 @@ func CSRF() gin.HandlerFunc {
 		csrf.ErrorHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "application/json; charset=utf-8")
 			w.WriteHeader(http.StatusForbidden)
-			w.Write([]byte(`{"message": "Forbidden - CSRF token invalid"}`))
+			w.Write([]byte(`{"code": "INVALID_CSRF_TOKEN", "message": "Forbidden - CSRF token invalid"}`))
 		})),
 	)
 

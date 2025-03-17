@@ -2,32 +2,29 @@
 <div class="h-screen min-h-full flex flex-col justify-center px-6 py-12 lg:px-8">
     <div class="max-w-5xl w-full flex flex-wrap mx-auto p-6 md:p-10 bg-white shadow rounded-lg">
         <div class="w-full md:w-2/5 flex flex-col items-center mb-8">
-            <img class="w-20 h-20 mb-2 rounded-full border" src="https://via.placeholder.com/64" alt="User Avatar">
-            <h3 class="text-lg font-semibold">Yozai Thinker</h3>
-            <p class="text-gray-500">yozai-thinker@example.com</p>
+            <img id="user-avatar" class="w-20 h-20 mb-2 rounded-full border" src="" alt="User Avatar">
+            <h3 id="user-name" class="text-lg font-semibold"></h3>
+            <p id="user-email" class="text-gray-500"></p>
         </div>
         <div class="w-full md:w-3/5 md:pl-6">
             <h2 class="text-xl font-bold mb-4">社群帳號連結</h2>
 
             <!-- Google -->
-            <div class="flex items-center p-3 bg-gray-50 rounded-md min-h-[105px] sm:min-h-[80px] mb-4">
-                <img class="w-10 h-10 mr-2 sm:mr-6" src="https://upload.wikimedia.org/wikipedia/commons/0/09/IOS_Google_icon.png" alt="social icon">
+            <div id="google-link" class="flex items-center p-3 bg-gray-50 rounded-md min-h-[105px] sm:min-h-[80px] mb-4">
+                <img class="w-10 h-10 mr-2 sm:mr-6" src="/assets/img/google.png" alt="social icon">
                 <div class="flex-grow flex flex-col sm:flex-row items-start sm:items-center" style="max-width: calc(100% - 40px);">
-                    <div class="w-full">
-                        <p class="font-semibold">Yozai Thinker</p>
-                        <p class="text-gray-500 mb-2 whitespace-nowrap overflow-hidden text-ellipsis" title="yozai-thinker@example.com">yozai-thinker@example.com</p>
-                    </div>
-                    <button class="cursor-pointer hover:text-red-900 hover:underline sm:ml-auto text-red-700 whitespace-nowrap">
-                        解除連結
+                    <p class="text-gray-500">尚未連結</p>
+                    <button class="cursor-pointer text-blue-600 hover:text-blue-800 hover:underline sm:ml-auto whitespace-nowrap">
+                        連結
                     </button>
                 </div>
             </div>
 
             <!-- Facebook -->
-            <div class="flex items-center p-3 bg-gray-50 rounded-md min-h-[105px] sm:min-h-[80px] mb-4">
-                <img class="w-10 h-10 mr-2 sm:mr-6" src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg" alt="social icon">
+            <div id="facebook-link" class="flex items-center p-3 bg-gray-50 rounded-md min-h-[105px] sm:min-h-[80px] mb-4">
+                <img class="w-10 h-10 mr-2 sm:mr-6" src="/assets/img/facebook.png" alt="social icon">
                 <div class="flex-grow flex flex-col sm:flex-row items-start sm:items-center" style="max-width: calc(100% - 40px);">
-                    <p class="text-gray-500" title="yozai-thinker@example.com">尚未連結</p>
+                    <p class="text-gray-500">尚未連結</p>
                     <button class="cursor-pointer text-blue-600 hover:text-blue-800 hover:underline sm:ml-auto whitespace-nowrap">
                         連結
                     </button>
@@ -36,4 +33,46 @@
         </div>
     </div>
 </div>
+
+<script>
+    getCSRFToken();
+
+    getUser()
+        .then(response => response.data)
+        .then(user => {
+            displayUserInfo(user);
+            closeLoading();
+        })
+        .catch(error => {
+            if (error.response && error.response.status === 401) {
+                window.location.href = '/template/login';
+            } else {
+                console.error('Error fetching user info:', error);
+                return null;
+            }
+        });
+
+    function displayUserInfo(user) {
+        document.getElementById('user-avatar').src = user.avatar;
+        document.getElementById('user-name').innerHTML = user.name;
+        document.getElementById('user-email').innerHTML = user.email;
+
+        user.social_accounts.forEach(account => {
+            console.log(account)
+            document.getElementById(`${account.provider}-link`).innerHTML = `
+                <img class="w-10 h-10 mr-2 sm:mr-6" src="/assets/img/${account.provider}.png" alt="social icon">
+                <div class="flex-grow flex flex-col sm:flex-row items-start sm:items-center" style="max-width: calc(100% - 40px);">
+                    <div class="w-full">
+                        <p class="font-semibold">${account.name}</p>
+                        <p class="text-gray-500 mb-2 whitespace-nowrap overflow-hidden text-ellipsis" title="${account.email}">${account.email}</p>
+                    </div>
+                    <button class="cursor-pointer hover:text-red-900 hover:underline sm:ml-auto text-red-700 whitespace-nowrap">
+                        解除連結
+                    </button>
+                </div>
+            `;
+        })
+    }
+</script>
+
 {{template "footer" .}}
