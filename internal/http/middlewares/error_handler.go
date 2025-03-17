@@ -110,13 +110,13 @@ func InitErrorHandler() gin.HandlerFunc {
 			})
 		}),
 		Map(domain.ErrMismatchedLinkedUser).ToResponse(func(c *gin.Context, err error) {
-			c.JSON(http.StatusBadRequest, gin.H{
+			c.JSON(http.StatusConflict, gin.H{
 				"code":    "MISMATCHED_LINKED_USER",
 				"message": "The linked social account belongs to a different user.",
 			})
 		}),
 		Map(domain.ErrSocialAccountAlreadyLinked).ToResponse(func(c *gin.Context, err error) {
-			c.JSON(http.StatusBadRequest, gin.H{
+			c.JSON(http.StatusConflict, gin.H{
 				"code":    "SOCIAL_ACCOUNT_ALREADY_LINKED",
 				"message": "The social account has already been linked to another user.",
 			})
