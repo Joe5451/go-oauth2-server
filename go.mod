@@ -6,6 +6,7 @@ require (
 	github.com/gin-contrib/sessions v1.0.2
 	github.com/gin-gonic/gin v1.10.0
 	github.com/golang-jwt/jwt v3.2.2+incompatible
+	github.com/google/uuid v1.4.0
 	github.com/google/wire v0.6.0
 	github.com/gorilla/csrf v1.7.2
 	github.com/gwatts/gin-adapter v1.0.0

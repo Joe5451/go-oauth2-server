@@ -79,6 +79,18 @@ func InitErrorHandler() gin.HandlerFunc {
 				"message": "Requires authentication.",
 			})
 		}),
+		Map(handlers.ErrMissingFile).ToResponse(func(c *gin.Context, err error) {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"code":    "MISSING_FILE",
+				"message": err.Error(),
+			})
+		}),
+		Map(handlers.ErrInvalidFileFormat).ToResponse(func(c *gin.Context, err error) {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"code":    "INVALID_FILE_FORMAT",
+				"message": err.Error(),
+			})
+		}),
 		Map(domain.ErrUserNotFound).ToResponse(func(c *gin.Context, err error) {
 			c.JSON(http.StatusNotFound, gin.H{
 				"code":    "USER_NOT_FOUND",

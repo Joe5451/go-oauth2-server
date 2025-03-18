@@ -255,6 +255,11 @@ func (u *UserService) UpdateUser(userID int64, user domain.User) error {
 	return err
 }
 
+func (u *UserService) UpdateUserAvatar(userID int64, avatarUrl string) error {
+	err := u.userRepo.UpdateUserAvatar(userID, avatarUrl)
+	return err
+}
+
 func (u *UserService) LinkSocialAccount(userID int64, provider socialproviders.SocialProvider, authCode, redirectUri string) error {
 	if provider == nil {
 		return domain.ErrInvalidProvider

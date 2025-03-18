@@ -12,5 +12,6 @@ type UserRepository interface {
 	GetSocialAccountByProviderUserID(providerUserID string) (domain.SocialAccount, error)
 	UpdateSocialAccountUserID(socialAccountID, userID int64) error
 	UpdateUser(usreID int64, user domain.User) error
+	UpdateUserAvatar(userID int64, avatarUrl string) error
 	UnlinkSocialAccount(userID int64, provider string) error
 }

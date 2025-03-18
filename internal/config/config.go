@@ -31,6 +31,8 @@ type Config struct {
 
 	CSRFSecret string `mapstructure:"CSRF_SECRET_KEY"`
 	CSRFSecure bool   `mapstructure:"CSRF_SECURE"`
+
+	UploadBaseUrl string `mapstructure:"UPLOAD_BASE_URL"`
 }
 
 var AppConfig Config

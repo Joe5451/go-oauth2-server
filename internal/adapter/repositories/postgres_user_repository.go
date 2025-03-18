@@ -202,6 +202,28 @@ func (r *PostgresUserRepository) UpdateUser(usreID int64, user domain.User) erro
 	return nil
 }
 
+func (r *PostgresUserRepository) UpdateUserAvatar(userID int64, avatarUrl string) error {
+	query := `
+		UPDATE users SET avatar = @avatar_url, updated_at = CURRENT_TIMESTAMP WHERE id = @user_id
+	`
+
+	args := pgx.NamedArgs{
+		"user_id":    userID,
+		"avatar_url": avatarUrl,
+	}
+
+	cmdTag, err := r.conn.Exec(context.Background(), query, args)
+	if err != nil {
+		return err
+	}
+
+	if cmdTag.RowsAffected() == 0 {
+		return fmt.Errorf("no user updated (user ID: %v, avatar URL: %v)", userID, avatarUrl)
+	}
+
+	return nil
+}
+
 func (r *PostgresUserRepository) UnlinkSocialAccount(userID int64, provider string) error {
 	query := `
 		UPDATE social_accounts SET user_id = null, updated_at = CURRENT_TIMESTAMP WHERE user_id = @user_id AND provider = @provider

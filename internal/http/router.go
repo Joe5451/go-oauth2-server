@@ -40,6 +40,7 @@ func NewRouter(
 	router.POST("/login", userHandler.LoginWithEmail)
 	router.POST("/logout", userHandler.Logout)
 	router.GET("/user", userHandler.GetUser)
+	router.PATCH("/user/avatar", userHandler.UpdateUserAvatar)
 
 	router.GET("/login/social/:provider", userHandler.SocialAuthURL)
 	router.POST("/login/social/callback", userHandler.SocialAuthCallback)

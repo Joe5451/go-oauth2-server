@@ -6,17 +6,22 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"path/filepath"
 
 	"github.com/Joe5451/go-oauth2-server/internal/application/ports/in"
+	"github.com/Joe5451/go-oauth2-server/internal/config"
 	"github.com/Joe5451/go-oauth2-server/internal/socialproviders"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 var (
-	ErrValidation   = errors.New("Validation error")
-	ErrUnauthorized = errors.New("Requires authentication.")
-	ErrInvalidState = errors.New("Invalid state.")
+	ErrValidation        = errors.New("Validation error")
+	ErrUnauthorized      = errors.New("Requires authentication.")
+	ErrInvalidState      = errors.New("Invalid state.")
+	ErrMissingFile       = errors.New("Missing file.")
+	ErrInvalidFileFormat = errors.New("Invalid file format")
 )
 
 type UserHandler struct {
@@ -310,4 +315,45 @@ func generateState() (string, error) {
 	}
 
 	return hex.EncodeToString(bytes), nil
+}
+
+func (h *UserHandler) UpdateUserAvatar(c *gin.Context) {
+	session := sessions.Default(c)
+	v := session.Get("user_id")
+	if v == nil {
+		c.Error(ErrUnauthorized)
+		return
+	}
+	userID := v.(int64)
+
+	file, err := c.FormFile("file")
+	if err != nil {
+		c.Error(ErrMissingFile)
+		return
+	}
+
+	allowedExtensions := map[string]bool{".jpg": true, ".jpeg": true, ".png": true}
+	ext := filepath.Ext(file.Filename)
+	if !allowedExtensions[ext] {
+		c.Error(fmt.Errorf("%w: %v", ErrInvalidFileFormat, "only JPG and PNG are allowed."))
+		return
+	}
+
+	filename := uuid.New().String() + ext
+	avatarUrl := config.AppConfig.UploadBaseUrl + "/uploads/" + filename
+	err = c.SaveUploadedFile(file, "./uploads/"+filename)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	err = h.usecase.UpdateUserAvatar(userID, avatarUrl)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"avatar_url": avatarUrl,
+	})
 }
