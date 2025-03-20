@@ -18,7 +18,11 @@ var (
 )
 
 func setup() {
-	err := os.Chdir("../")
+	var err error
+	err = os.Chdir("../")
+	if err != nil {
+		panic(err)
+	}
 
 	viper.Set("DB_HOST", "localhost")
 	viper.Set("DB_PORT", "5432")
