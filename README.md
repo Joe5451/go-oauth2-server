@@ -38,3 +38,10 @@
 ├── go.sum
 └── README.md
 ```
+
+## Test
+
+**Integration Tests**
+```
+go test ./test
+```
