@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/Joe5451/go-oauth2-server/internal"
@@ -70,4 +71,31 @@ func TestCSRFToken(t *testing.T) {
 
 	csrfToken := w.Header().Get("X-CSRF-Token")
 	assert.NotEmpty(t, csrfToken, "Expected CSRF token to be present in header")
+}
+
+func TestRegister(t *testing.T) {
+	req, _ := http.NewRequest("GET", "/csrf-token", nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	csrfToken := w.Header().Get("X-Csrf-Token")
+	assert.NotEmpty(t, csrfToken, "Expected CSRF token to be present in header")
+
+	cookies := w.Result().Cookies()
+
+	t.Run("should register a new user successfully", func(t *testing.T) {
+		payload := `{"email": "yozai-thinker@example.com", "password": "f205c9241173", "name": "Yozai Thinker"}`
+		req, _ := http.NewRequest("POST", "/register", strings.NewReader(payload))
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("X-CSRF-Token", csrfToken)
+
+		for _, cookie := range cookies {
+			req.AddCookie(cookie)
+		}
+
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusNoContent, w.Code, "Expected status code 204 No Content")
+	})
 }
