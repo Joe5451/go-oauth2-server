@@ -3,7 +3,7 @@ function closeLoading() {
 }
 
 const axiosInstance = axios.create({
-    baseURL: '/', // Your API base URL
+    baseURL: '/api', // Your API base URL
     timeout: 10000,
     headers: {
       'Content-Type': 'application/json',

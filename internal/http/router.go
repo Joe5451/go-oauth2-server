@@ -26,41 +26,46 @@ func NewRouter(
 		[]byte(config.AppConfig.RedisSecret),
 	)
 
-	router.Use(sessions.Sessions("usersession", store))
+	// API
+	router.Static("/uploads", "./uploads")
+	{
+		api := router.Group("/api")
 
-	// Set up error handler
-	router.Use(middlewares.InitErrorHandler())
+		// Set up session
+		api.Use(sessions.Sessions("usersession", store))
 
-	// setup csrf middleware
-	router.Use(middlewares.CSRF())
-	router.Use(middlewares.CSRFToken())
+		// Set up error handler
+		api.Use(middlewares.InitErrorHandler())
 
-	router.GET("/csrf-token", userHandler.CSRFToken)
-	router.POST("/register", userHandler.Register)
-	router.POST("/login", userHandler.LoginWithEmail)
-	router.POST("/logout", userHandler.Logout)
-	router.GET("/user", userHandler.GetUser)
-	router.PATCH("/user/avatar", userHandler.UpdateUserAvatar)
+		// setup csrf middleware
+		api.Use(middlewares.CSRF())
+		api.Use(middlewares.CSRFToken())
 
-	router.GET("/login/social/:provider", userHandler.SocialAuthURL)
-	router.POST("/login/social/callback", userHandler.SocialAuthCallback)
+		api.GET("/csrf-token", userHandler.CSRFToken)
+		api.POST("/register", userHandler.Register)
+		api.POST("/login", userHandler.LoginWithEmail)
+		api.POST("/logout", userHandler.Logout)
+		api.GET("/user", userHandler.GetUser)
+		api.PATCH("/user/avatar", userHandler.UpdateUserAvatar)
 
-	router.GET("/auth/social/:provider/link/url", userHandler.SocialAuthUrlForLinkingExistingUser)
-	router.POST("/auth/social/link", userHandler.LinkUserWithSocialAccount)
+		api.GET("/login/social/:provider", userHandler.SocialAuthURL)
+		api.POST("/login/social/callback", userHandler.SocialAuthCallback)
 
-	// router.GET("/auth/:provider/url", userHandler.GenerateAuthUrl)
-	// router.POST("/auth/:provider/callback", userHandler.HandleOAuth2Callback)
-	// router.PATCH("/user", userHandler.UpdateUser)
+		api.GET("/auth/social/:provider/link/url", userHandler.SocialAuthUrlForLinkingExistingUser)
+		api.POST("/auth/social/link", userHandler.LinkUserWithSocialAccount)
 
-	router.POST("/user/link/:provider", userHandler.LinkSocialAccount)
-	router.DELETE("/user/unlink/:provider", userHandler.UnlinkSocialAccount)
+		api.POST("/user/link/:provider", userHandler.LinkSocialAccount)
+		api.DELETE("/user/unlink/:provider", userHandler.UnlinkSocialAccount)
+	}
 
 	// Template
 	router.Static("/assets", "./web/assets")
 	router.LoadHTMLGlob("web/templates/*.tmpl")
-
-	router.GET("/template/login", templateHandler.Login)
-	router.GET("/template/user/social-links", templateHandler.SocialLinks)
+	{
+		template := router.Group("/template")
+		template.GET("/login", templateHandler.Login)
+		template.GET("/user/social-links", templateHandler.SocialLinks)
+	}
 
 	return router
 }
