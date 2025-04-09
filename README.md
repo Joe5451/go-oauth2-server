@@ -1,6 +1,6 @@
 # Go Oauth2 Server
 
-[![Go Report Card](https://goreportcard.com/badge/joe5451/go-oauth2-server)](https://goreportcard.com/report/joe5451/go-oauth2-server)
+[![Go Report Card](https://goreportcard.com/badge/github.com/Joe5451/go-oauth2-server)](https://goreportcard.com/report/github.com/Joe5451/go-oauth2-server)
 
 ## Project Layout
 
