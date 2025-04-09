@@ -1,6 +1,7 @@
 package test
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -9,27 +10,27 @@ import (
 
 	"github.com/Joe5451/go-oauth2-server/internal"
 	"github.com/Joe5451/go-oauth2-server/internal/config"
+	"github.com/Joe5451/go-oauth2-server/internal/database"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 )
 
-var (
-	router *gin.Engine
-)
+type TestSuite struct {
+	suite.Suite
+	router    *gin.Engine
+	csrfToken string
+	cookies   []*http.Cookie
+}
 
-func setup() {
-	var err error
-	err = os.Chdir("../")
-	if err != nil {
-		panic(err)
-	}
+func (s *TestSuite) SetupSuite() {
+	s.Require().NoError(os.Chdir("../"))
 
 	viper.Set("DB_HOST", "localhost")
 	viper.Set("DB_PORT", "5432")
 	viper.Set("DB_USER", "postgres")
 	viper.Set("DB_PASSWORD", "postgres")
-	viper.Set("DB_NAME", "go-oauth2-server")
+	viper.Set("DB_NAME", "go-oauth2-server-test")
 
 	viper.Set("REDIS_HOST", "localhost")
 	viper.Set("REDIS_PORT", "6379")
@@ -43,59 +44,78 @@ func setup() {
 	viper.Set("FACEBOOK_OAUTH2_CLIENT_SECRET", "test_facebook_client_secret")
 
 	viper.Set("JWT_SECRET_KEY", "jwt-secret")
-
 	viper.Set("CSRF_SECRET_KEY", "csrf-key")
 	viper.Set("CSRF_SECURE", "false")
-
 	viper.Set("UPLOAD_BASE_URL", "http://localhost:8000")
 
-	err = viper.Unmarshal(&config.AppConfig)
-	if err != nil {
-		panic(err)
-	}
+	s.Require().NoError(viper.Unmarshal(&config.AppConfig))
 
-	router, err = internal.InitializeApp()
-	if err != nil {
-		panic(err)
-	}
+	var err error
+	s.router, err = internal.InitializeApp()
+	s.Require().NoError(err)
 }
 
-func TestCSRFToken(t *testing.T) {
-	setup()
-	req, _ := http.NewRequest("GET", "/csrf-token", nil)
+func (s *TestSuite) SetupTest() {
+	req, _ := http.NewRequest("GET", "/api/csrf-token", nil)
 	w := httptest.NewRecorder()
-	router.ServeHTTP(w, req)
+	s.router.ServeHTTP(w, req)
 
-	expectedStatus := http.StatusNoContent
-	assert.Equal(t, expectedStatus, w.Code)
+	s.Require().Equal(http.StatusNoContent, w.Code)
+	s.csrfToken = w.Header().Get("X-CSRF-Token")
+	s.Require().NotEmpty(s.csrfToken)
+	s.cookies = w.Result().Cookies()
+}
 
+func (s *TestSuite) TearDownTest() {
+	conn, err := database.NewPostgresDB()
+	s.Require().NoError(err, "Failed to connect database for cleanup")
+
+	tx, err := conn.Begin(context.Background())
+	s.Require().NoError(err, "Failed to start transaction for cleanup")
+
+	_, err = tx.Exec(context.Background(), `
+		DO $$ DECLARE
+			r RECORD;
+		BEGIN
+			FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
+				EXECUTE 'TRUNCATE TABLE ' || quote_ident(r.tablename) || ' CASCADE';
+			END LOOP;
+		END $$;
+	`)
+	s.Require().NoError(err, "Failed to clean database")
+
+	err = tx.Commit(context.Background())
+	s.Require().NoError(err, "Failed to commit cleanup transaction")
+}
+
+func (s *TestSuite) TestCSRFToken() {
+	req, _ := http.NewRequest("GET", "/api/csrf-token", nil)
+	w := httptest.NewRecorder()
+	s.router.ServeHTTP(w, req)
+
+	s.Equal(http.StatusNoContent, w.Code)
 	csrfToken := w.Header().Get("X-CSRF-Token")
-	assert.NotEmpty(t, csrfToken, "Expected CSRF token to be present in header")
+	s.NotEmpty(csrfToken, "Expected CSRF token to be present in header")
 }
 
-func TestRegister(t *testing.T) {
-	req, _ := http.NewRequest("GET", "/csrf-token", nil)
-	w := httptest.NewRecorder()
-	router.ServeHTTP(w, req)
-
-	csrfToken := w.Header().Get("X-Csrf-Token")
-	assert.NotEmpty(t, csrfToken, "Expected CSRF token to be present in header")
-
-	cookies := w.Result().Cookies()
-
-	t.Run("should register a new user successfully", func(t *testing.T) {
+func (s *TestSuite) TestRegister() {
+	s.Run("should register a new user successfully", func() {
 		payload := `{"email": "yozai-thinker@example.com", "password": "f205c9241173", "name": "Yozai Thinker"}`
-		req, _ := http.NewRequest("POST", "/register", strings.NewReader(payload))
+		req, _ := http.NewRequest("POST", "/api/register", strings.NewReader(payload))
 		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("X-CSRF-Token", csrfToken)
+		req.Header.Set("X-CSRF-Token", s.csrfToken)
 
-		for _, cookie := range cookies {
+		for _, cookie := range s.cookies {
 			req.AddCookie(cookie)
 		}
 
 		w := httptest.NewRecorder()
-		router.ServeHTTP(w, req)
+		s.router.ServeHTTP(w, req)
 
-		assert.Equal(t, http.StatusNoContent, w.Code, "Expected status code 204 No Content")
+		s.Equal(http.StatusNoContent, w.Code, "Expected status code 204 No Content")
 	})
+}
+
+func TestAPISuite(t *testing.T) {
+	suite.Run(t, new(TestSuite))
 }
