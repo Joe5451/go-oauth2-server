@@ -2,6 +2,7 @@ package test
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -15,6 +16,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/suite"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type TestSuite struct {
@@ -90,6 +92,16 @@ func (s *TestSuite) TearDownTest() {
 	s.Require().NoError(err, "Failed to commit cleanup transaction")
 }
 
+func (s *TestSuite) createTestUser(name, email, password string) {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 10)
+	s.Require().NoError(err, "Failed to hash password")
+
+	_, err = s.conn.Exec(context.Background(), `
+		INSERT INTO users (email, password, name) VALUES ($1, $2, $3)
+	`, email, string(hashedPassword), name)
+	s.Require().NoError(err, "Failed to insert test user")
+}
+
 func (s *TestSuite) TestCSRFToken() {
 	req, _ := http.NewRequest("GET", "/api/csrf-token", nil)
 	w := httptest.NewRecorder()
@@ -104,6 +116,28 @@ func (s *TestSuite) TestRegister() {
 	s.Run("should register a new user successfully", func() {
 		payload := `{"email": "yozai-thinker@example.com", "password": "f205c9241173", "name": "Yozai Thinker"}`
 		req, _ := http.NewRequest("POST", "/api/register", strings.NewReader(payload))
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("X-CSRF-Token", s.csrfToken)
+
+		for _, cookie := range s.cookies {
+			req.AddCookie(cookie)
+		}
+
+		w := httptest.NewRecorder()
+		s.router.ServeHTTP(w, req)
+
+		s.Equal(http.StatusNoContent, w.Code, "Expected status code 204 No Content")
+	})
+}
+
+func (s *TestSuite) TestLogin() {
+	s.Run("should login successfully with valid credentials", func() {
+		email := "yozai-thinker@example.com"
+		password := "f205c9241173"
+		s.createTestUser("Yozai Thinker", email, password)
+
+		loginPayload := fmt.Sprintf(`{"email": "%s", "password": "%s"}`, email, password)
+		req, _ := http.NewRequest("POST", "/api/login", strings.NewReader(loginPayload))
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("X-CSRF-Token", s.csrfToken)
 
