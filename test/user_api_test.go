@@ -12,6 +12,7 @@ import (
 	"github.com/Joe5451/go-oauth2-server/internal/config"
 	"github.com/Joe5451/go-oauth2-server/internal/database"
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/suite"
 )
@@ -21,6 +22,7 @@ type TestSuite struct {
 	router    *gin.Engine
 	csrfToken string
 	cookies   []*http.Cookie
+	conn      *pgx.Conn
 }
 
 func (s *TestSuite) SetupSuite() {
@@ -53,6 +55,9 @@ func (s *TestSuite) SetupSuite() {
 	var err error
 	s.router, err = internal.InitializeApp()
 	s.Require().NoError(err)
+
+	s.conn, err = database.NewPostgresDB()
+	s.Require().NoError(err, "Failed to connect database for cleanup")
 }
 
 func (s *TestSuite) SetupTest() {
@@ -67,10 +72,7 @@ func (s *TestSuite) SetupTest() {
 }
 
 func (s *TestSuite) TearDownTest() {
-	conn, err := database.NewPostgresDB()
-	s.Require().NoError(err, "Failed to connect database for cleanup")
-
-	tx, err := conn.Begin(context.Background())
+	tx, err := s.conn.Begin(context.Background())
 	s.Require().NoError(err, "Failed to start transaction for cleanup")
 
 	_, err = tx.Exec(context.Background(), `
