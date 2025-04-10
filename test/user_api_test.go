@@ -102,6 +102,27 @@ func (s *TestSuite) createTestUser(name, email, password string) {
 	s.Require().NoError(err, "Failed to insert test user")
 }
 
+func (s *TestSuite) loginTestUser(email, password string) {
+	loginPayload := fmt.Sprintf(`{"email": "%s", "password": "%s"}`, email, password)
+	req, _ := http.NewRequest("POST", "/api/login", strings.NewReader(loginPayload))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-CSRF-Token", s.csrfToken)
+
+	for _, cookie := range s.cookies {
+		req.AddCookie(cookie)
+	}
+
+	w := httptest.NewRecorder()
+	s.router.ServeHTTP(w, req)
+
+	s.Require().Equal(http.StatusNoContent, w.Code, "Expected status code 204 No Content")
+	for _, cookie := range w.Result().Cookies() {
+		if cookie.Name == "usersession" {
+			s.cookies = append(s.cookies, cookie)
+		}
+	}
+}
+
 func (s *TestSuite) TestCSRFToken() {
 	req, _ := http.NewRequest("GET", "/api/csrf-token", nil)
 	w := httptest.NewRecorder()
@@ -149,6 +170,30 @@ func (s *TestSuite) TestLogin() {
 		s.router.ServeHTTP(w, req)
 
 		s.Equal(http.StatusNoContent, w.Code, "Expected status code 204 No Content")
+	})
+}
+
+func (s *TestSuite) TestGetUser() {
+	s.Run("should return user info when logged in", func() {
+		name := "yozai-thinker"
+		email := "yozai-thinker@example.com"
+		password := "f205c9241173"
+		s.createTestUser(name, email, password)
+		s.loginTestUser(email, password)
+
+		req, _ := http.NewRequest("GET", "/api/user", nil)
+		req.Header.Set("X-CSRF-Token", s.csrfToken)
+
+		for _, cookie := range s.cookies {
+			req.AddCookie(cookie)
+		}
+
+		w := httptest.NewRecorder()
+		s.router.ServeHTTP(w, req)
+		s.Equal(http.StatusOK, w.Code, "Expected status code 200 OK")
+
+		expectedBody := fmt.Sprintf(`{"email":"%s","name":"%s","avatar":null,"social_accounts":[]}`, email, name)
+		s.Equal(expectedBody, w.Body.String(), "Expected body to match")
 	})
 }
 
