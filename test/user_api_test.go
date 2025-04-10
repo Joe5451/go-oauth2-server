@@ -30,29 +30,12 @@ type TestSuite struct {
 func (s *TestSuite) SetupSuite() {
 	s.Require().NoError(os.Chdir("../"))
 
-	viper.Set("DB_HOST", "localhost")
-	viper.Set("DB_PORT", "5432")
-	viper.Set("DB_USER", "postgres")
-	viper.Set("DB_PASSWORD", "postgres")
-	viper.Set("DB_NAME", "go-oauth2-server-test")
+	viper.SetConfigName(".env.test")
+	viper.SetConfigType("env")
+	viper.AddConfigPath(".")
 
-	viper.Set("REDIS_HOST", "localhost")
-	viper.Set("REDIS_PORT", "6379")
-	viper.Set("REDIS_PASSWORD", "")
-	viper.Set("REDIS_SECRET", "")
-
-	viper.Set("GOOGLE_OAUTH2_CLIENT_ID", "test_google_client_id")
-	viper.Set("GOOGLE_OAUTH2_CLIENT_SECRET", "test_google_client_secret")
-
-	viper.Set("FACEBOOK_OAUTH2_CLIENT_ID", "test_facebook_client_id")
-	viper.Set("FACEBOOK_OAUTH2_CLIENT_SECRET", "test_facebook_client_secret")
-
-	viper.Set("JWT_SECRET_KEY", "jwt-secret")
-	viper.Set("CSRF_SECRET_KEY", "csrf-key")
-	viper.Set("CSRF_SECURE", "false")
-	viper.Set("UPLOAD_BASE_URL", "http://localhost:8000")
-
-	s.Require().NoError(viper.Unmarshal(&config.AppConfig))
+	s.Require().NoError(viper.ReadInConfig(), "Error reading .env.test file")
+	s.Require().NoError(viper.Unmarshal(&config.AppConfig), "Error unmarshalling config")
 
 	var err error
 	s.router, err = internal.InitializeApp()
