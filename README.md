@@ -42,7 +42,12 @@
 
 ## Test
 
-**Integration Tests**
+Copy `.env.example` to `.env.test` and modify `.env.test` to match your testing environment settings.
+```bash
+cp .env.example .env.test
+```
+
+**Running Integration Tests**
 ```
 go test ./test
 ```
