@@ -131,7 +131,12 @@ func (h *UserHandler) SocialAuthURL(c *gin.Context) {
 		return
 	}
 
-	state := "state"
+	state, err := h.generateState()
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
 	url, err := h.usecase.SocialAuthUrl(provider, state, redirectUri)
 	if err != nil {
 		c.Error(err)
@@ -308,15 +313,6 @@ func (h *UserHandler) UnlinkSocialAccount(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
-func generateState() (string, error) {
-	bytes := make([]byte, 32)
-	if _, err := rand.Read(bytes); err != nil {
-		return "", fmt.Errorf("failed to generate random state: %w", err)
-	}
-
-	return hex.EncodeToString(bytes), nil
-}
-
 func (h *UserHandler) UpdateUserAvatar(c *gin.Context) {
 	session := sessions.Default(c)
 	v := session.Get("user_id")
@@ -356,4 +352,13 @@ func (h *UserHandler) UpdateUserAvatar(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"avatar_url": avatarUrl,
 	})
+}
+
+func (h *UserHandler) generateState() (string, error) {
+	bytes := make([]byte, 32)
+	if _, err := rand.Read(bytes); err != nil {
+		return "", fmt.Errorf("failed to generate random state: %w", err)
+	}
+
+	return hex.EncodeToString(bytes), nil
 }
