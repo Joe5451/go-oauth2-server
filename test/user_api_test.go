@@ -177,6 +177,21 @@ func (s *TestSuite) TestLogout() {
 	})
 }
 
+func (s *TestSuite) TestLogoutUnauthorized() {
+	s.Run("should return unauthorized when user is not logged in", func() {
+		req, _ := http.NewRequest("POST", "/api/logout", nil)
+		req.Header.Set("X-CSRF-Token", s.csrfToken)
+		for _, cookie := range s.cookies {
+			req.AddCookie(cookie)
+		}
+
+		w := httptest.NewRecorder()
+		s.router.ServeHTTP(w, req)
+
+		s.Equal(http.StatusUnauthorized, w.Code, "Expected status code 401 Unauthorized")
+	})
+}
+
 func (s *TestSuite) TestGetUser() {
 	s.Run("should return user info when logged in", func() {
 		name := "yozai-thinker"
