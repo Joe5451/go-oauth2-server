@@ -156,6 +156,27 @@ func (s *TestSuite) TestLogin() {
 	})
 }
 
+func (s *TestSuite) TestLogout() {
+	s.Run("should logout successfully when user is logged in", func() {
+		name := "yozai-thinker"
+		email := "yozai-thinker@example.com"
+		password := "f205c9241173"
+		s.createTestUser(name, email, password)
+		s.loginTestUser(email, password)
+
+		req, _ := http.NewRequest("POST", "/api/logout", nil)
+		req.Header.Set("X-CSRF-Token", s.csrfToken)
+		for _, cookie := range s.cookies {
+			req.AddCookie(cookie)
+		}
+
+		w := httptest.NewRecorder()
+		s.router.ServeHTTP(w, req)
+
+		s.Equal(http.StatusNoContent, w.Code, "Expected status code 204 No Content")
+	})
+}
+
 func (s *TestSuite) TestGetUser() {
 	s.Run("should return user info when logged in", func() {
 		name := "yozai-thinker"
