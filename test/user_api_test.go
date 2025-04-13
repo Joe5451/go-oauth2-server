@@ -242,6 +242,30 @@ func (s *TestSuite) TestSocialAuthURL() {
 		match, _ := regexp.MatchString(expectedRegex, authURL)
 		s.True(match, "auth_url does not match expected format:\nExpected pattern: %s\nActual: %s", expectedRegex, authURL)
 	})
+
+	s.Run("should return valid Facebook auth_url", func() {
+		req, _ := http.NewRequest("GET", "/api/login/social/facebook?redirect_uri=http://localhost/callback", nil)
+		w := httptest.NewRecorder()
+
+		s.router.ServeHTTP(w, req)
+
+		s.Equal(http.StatusOK, w.Code)
+
+		var body map[string]string
+		s.NoError(json.NewDecoder(w.Body).Decode(&body))
+
+		authURL := body["auth_url"]
+
+		expectedRegex := fmt.Sprintf(
+			`^https://www\.facebook\.com/v3\.2/dialog/oauth\?access_type=offline&client_id=%s&redirect_uri=%s&response_type=code&scope=email&state=[a-f0-9]{64}$`,
+			regexp.QuoteMeta(config.AppConfig.FacebookOauth2ClientID),
+			regexp.QuoteMeta(url.QueryEscape("http://localhost/callback")),
+		)
+
+		match, err := regexp.MatchString(expectedRegex, authURL)
+		s.NoError(err)
+		s.True(match, "auth_url does not match expected format:\nExpected pattern: %s\nActual: %s", expectedRegex, authURL)
+	})
 }
 
 func TestAPISuite(t *testing.T) {
