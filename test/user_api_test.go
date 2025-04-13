@@ -2,10 +2,13 @@ package test
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -213,6 +216,31 @@ func (s *TestSuite) TestGetUser() {
 
 		expectedBody := fmt.Sprintf(`{"email":"%s","name":"%s","avatar":null,"social_accounts":[]}`, email, name)
 		s.Equal(expectedBody, w.Body.String(), "Expected body to match")
+	})
+}
+
+func (s *TestSuite) TestSocialAuthURL() {
+	s.Run("should return valid Google auth_url", func() {
+		req, _ := http.NewRequest("GET", "/api/login/social/google?redirect_uri=http://localhost/callback", nil)
+		w := httptest.NewRecorder()
+
+		s.router.ServeHTTP(w, req)
+
+		s.Equal(http.StatusOK, w.Code)
+
+		var body map[string]string
+		s.NoError(json.NewDecoder(w.Body).Decode(&body))
+
+		authURL := body["auth_url"]
+
+		expectedRegex := fmt.Sprintf(
+			`^https://accounts\.google\.com/o/oauth2/auth\?access_type=offline&client_id=%s&redirect_uri=%s&response_type=code&scope=openid\+profile\+email&state=[a-f0-9]{64}$`,
+			regexp.QuoteMeta(config.AppConfig.GoogleOauth2ClientID),
+			regexp.QuoteMeta(url.QueryEscape("http://localhost/callback")),
+		)
+
+		match, _ := regexp.MatchString(expectedRegex, authURL)
+		s.True(match, "auth_url does not match expected format:\nExpected pattern: %s\nActual: %s", expectedRegex, authURL)
 	})
 }
 
