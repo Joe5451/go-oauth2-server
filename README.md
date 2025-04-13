@@ -47,7 +47,13 @@ Copy `.env.example` to `.env.test` and modify `.env.test` to match your testing 
 cp .env.example .env.test
 ```
 
-**Running Integration Tests**
+**Running Feature Tests**
 ```
 go test ./test
+```
+
+**Coverage**
+```
+go test -coverpkg=./internal/... -coverprofile=coverage.out ./test
+go tool cover -func=coverage.out
 ```
